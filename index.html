@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PatchWorld WebBridge Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        .container {
+            background-color: #16213e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+            border: 1px solid #0f3460;
+        }
+        h1 {
+            margin-top: 0;
+            color: #e94560;
+            font-size: 24px;
+        }
+        h2 {
+            color: #4a90e2;
+            font-size: 18px;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            background-color: #0f3460;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            background-color: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #d13d56;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+            min-height: 20px;
+        }
+        .status {
+            font-size: 12px;
+            margin-top: 15px;
+            padding: 5px;
+            border-radius: 4px;
+            background-color: #000;
+        }
+        .status.connected { color: #4CAF50; }
+        .status.disconnected { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PatchWorld UI</h1>
+        <h2 id="welcomeText">Waiting for connection...</h2>
+        
+        <input type="text" id="toasterInput" placeholder="Enter message..." value="Hello from UI!" disabled>
+        <button id="sendBtn" disabled>Send Toaster Message</button>
+        
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+        
+        <h2 style="font-size: 16px; margin-bottom: 10px;">Wireless Jolt</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="joltChannel" placeholder="Channel (e.g. trigger)" value="trigger" disabled style="margin-bottom: 0;">
+            <input type="number" id="joltValue" placeholder="Value" value="1" disabled style="margin-bottom: 0; width: 100px;">
+        </div>
+        <button id="sendJoltBtn" disabled style="background-color: #4a90e2;">Send Wireless Jolt</button>
+        
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+        
+        <h2 style="font-size: 16px; margin-bottom: 10px;">Blocks & Scene</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="copySourceId" placeholder="Source fullID" value="" disabled style="margin-bottom: 0;">
+            <input type="text" id="copyParentId" placeholder="Parent fullID (optional)" value="" disabled style="margin-bottom: 0;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <button id="copyBlockBtn" disabled style="background-color: #8e44ad;">Copy Block</button>
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="removeDelay" placeholder="Delay (s)" value="0" disabled style="margin-bottom: 0; width: 80px;">
+                <button id="removeBlockBtn" disabled style="background-color: #c0392b; flex-grow: 1;">Remove Block</button>
+            </div>
+        </div>
+
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+        
+        <h2 style="font-size: 16px; margin-bottom: 10px;">Transforms</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button id="btnPlaceInFront" disabled style="background-color: #8e44ad;">Place 40cm in front of Head</button>
+            <button id="btnGetInfo" disabled style="background-color: #16a085;">Get Info</button>
+        </div>
+        <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+            <input type="text" id="tTarget" placeholder="Target fullID" value="" disabled style="margin-bottom: 0;">
+            <input type="number" id="tPart" placeholder="PartID (def: 0)" value="" disabled style="margin-bottom: 0; width: 100px;">
+        </div>
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <input type="text" id="tSpace" placeholder="Space fullID (opt)" value="" disabled style="margin-bottom: 0;">
+            <input type="number" id="tSpacePart" placeholder="Space PartID" value="" disabled style="margin-bottom: 0; width: 100px;">
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+            <button id="btnSetVisible" disabled style="background-color: #2980b9; padding: 5px 10px;">Set Visible</button>
+            <button id="btnSetHidden" disabled style="background-color: #34495e; padding: 5px 10px;">Set Hidden</button>
+            <div style="width: 1px; height: 20px; background-color: #555;"></div>
+            <button id="btnSetLocked" disabled style="background-color: #c0392b; padding: 5px 10px;">Lock</button>
+            <button id="btnSetUnlocked" disabled style="background-color: #27ae60; padding: 5px 10px;">Unlock</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px;">
+            <input type="text" id="tX" placeholder="x" value="" disabled style="margin-bottom: 0;">
+            <input type="text" id="tY" placeholder="y" value="" disabled style="margin-bottom: 0;">
+            <input type="text" id="tZ" placeholder="z" value="" disabled style="margin-bottom: 0;">
+            <input type="text" id="tW" placeholder="w (quat)" value="" disabled style="margin-bottom: 0;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <button id="btnGetPos" disabled style="background-color: #3498db;">Get Pos</button>
+            <button id="btnSetPos" disabled style="background-color: #2980b9;">Set Pos</button>
+            <button id="btnGetRot" disabled style="background-color: #3498db;">Get Rot (Euler)</button>
+            <button id="btnSetRot" disabled style="background-color: #2980b9;">Set Rot (Euler)</button>
+            <button id="btnGetQuat" disabled style="background-color: #3498db;">Get Quat</button>
+            <button id="btnSetQuat" disabled style="background-color: #2980b9;">Set Quat</button>
+            <button id="btnGetScale" disabled style="background-color: #3498db;">Get Scale</button>
+            <button id="btnSetScale" disabled style="background-color: #2980b9;">Set Scale</button>
+        </div>
+
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+        
+        <h2 style="font-size: 16px; margin-bottom: 10px;">Online Variables</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="varKey" placeholder="Variable Key" value="my_var" disabled style="margin-bottom: 0;">
+            <input type="number" id="varValue" placeholder="Value" value="10" disabled style="margin-bottom: 0;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <button id="postStrBtn" disabled style="background-color: #4CAF50;">Post String</button>
+            <button id="postValBtn" disabled style="background-color: #4CAF50;">Post Value</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <button id="fetchStrBtn" disabled style="background-color: #FF9800;">Fetch String</button>
+            <button id="fetchValBtn" disabled style="background-color: #FF9800;">Fetch Value</button>
+        </div>
+
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+
+        <h2 style="font-size: 16px; margin-bottom: 10px;">Players</h2>
+        <div id="playerList" style="font-size: 14px; text-align: left; background: #0f3460; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+            <em>No players connected.</em>
+        </div>
+
+        <div id="result" style="margin-bottom: 15px;"></div>
+        <div id="connectionStatus" class="status disconnected">Disconnected</div>
+    </div>
+
+    <!-- Include the PatchWorld Bridge API -->
+    <script src="patchworld-bridge.js"></script>
+
+    <script>
+        // Set up Lifecycle Hooks
+        
+        PatchWorld.onBeforeData = function() {
+            // Called right before receiving new context data.
+            // Good place to clear caches or reset UI if the bridge reconnected.
+            document.getElementById('result').innerText = "Connecting...";
+        };
+
+        PatchWorld.onData = function(context) {
+            // Called when connection is established and data is received
+            document.getElementById('connectionStatus').innerText = "Connected to " + (context.worldId || "World");
+            document.getElementById('connectionStatus').className = "status connected";
+            
+            // Personalize UI
+            if (context.username) {
+                document.getElementById('welcomeText').innerText = "Welcome, " + context.username + "!";
+            } else {
+                document.getElementById('welcomeText').innerText = "Welcome, Player!";
+            }
+
+            // Enable inputs
+            document.getElementById('toasterInput').disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('joltChannel').disabled = false;
+            document.getElementById('joltValue').disabled = false;
+            document.getElementById('sendJoltBtn').disabled = false;
+            document.getElementById('varKey').disabled = false;
+            document.getElementById('varValue').disabled = false;
+            document.getElementById('postStrBtn').disabled = false;
+            document.getElementById('postValBtn').disabled = false;
+            document.getElementById('fetchStrBtn').disabled = false;
+            document.getElementById('fetchValBtn').disabled = false;
+            document.getElementById('copySourceId').disabled = false;
+            document.getElementById('copyParentId').disabled = false;
+            document.getElementById('copyBlockBtn').disabled = false;
+            document.getElementById('removeDelay').disabled = false;
+            document.getElementById('removeBlockBtn').disabled = false;
+            document.getElementById('btnPlaceInFront').disabled = false;
+            document.getElementById('btnGetInfo').disabled = false;
+            document.getElementById('btnSetVisible').disabled = false;
+            document.getElementById('btnSetHidden').disabled = false;
+            document.getElementById('btnSetLocked').disabled = false;
+            document.getElementById('btnSetUnlocked').disabled = false;
+            
+            const transformInputs = ['tTarget', 'tPart', 'tSpace', 'tSpacePart', 'tX', 'tY', 'tZ', 'tW', 
+                'btnGetPos', 'btnSetPos', 'btnGetRot', 'btnSetRot', 'btnGetQuat', 'btnSetQuat', 'btnGetScale', 'btnSetScale'];
+            transformInputs.forEach(id => document.getElementById(id).disabled = false);
+            
+            renderPlayerList();
+        };
+
+        PatchWorld.onDisconnected = function() {
+            // Called when the cable is unplugged in PatchWorld
+            document.getElementById('connectionStatus').innerText = "Disconnected";
+            document.getElementById('connectionStatus').className = "status disconnected";
+            document.getElementById('welcomeText').innerText = "Waiting for connection...";
+            
+            // Disable inputs
+            document.getElementById('toasterInput').disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('joltChannel').disabled = true;
+            document.getElementById('joltValue').disabled = true;
+            document.getElementById('sendJoltBtn').disabled = true;
+            document.getElementById('varKey').disabled = true;
+            document.getElementById('varValue').disabled = true;
+            document.getElementById('postStrBtn').disabled = true;
+            document.getElementById('postValBtn').disabled = true;
+            document.getElementById('fetchStrBtn').disabled = true;
+            document.getElementById('fetchValBtn').disabled = true;
+            document.getElementById('copySourceId').disabled = true;
+            document.getElementById('copyParentId').disabled = true;
+            document.getElementById('copyBlockBtn').disabled = true;
+            document.getElementById('removeDelay').disabled = true;
+            document.getElementById('removeBlockBtn').disabled = true;
+            document.getElementById('btnPlaceInFront').disabled = true;
+            document.getElementById('btnGetInfo').disabled = true;
+
+            const transformInputs = ['tTarget', 'tPart', 'tSpace', 'tSpacePart', 'tX', 'tY', 'tZ', 'tW', 
+                'btnGetPos', 'btnSetPos', 'btnGetRot', 'btnSetRot', 'btnGetQuat', 'btnSetQuat', 'btnGetScale', 'btnSetScale'];
+            transformInputs.forEach(id => document.getElementById(id).disabled = true);
+            
+            renderPlayerList();
+        };
+
+        document.getElementById('btnSetVisible').addEventListener('click', async () => {
+            const target = document.getElementById('tTarget').value;
+            const part = document.getElementById('tPart').value === "" ? -1 : parseInt(document.getElementById('tPart').value);
+            const resultDiv = document.getElementById('result');
+            try { resultDiv.innerText = await runCommand("SetBlockVisible", target, true, part); } 
+            catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+        document.getElementById('btnSetHidden').addEventListener('click', async () => {
+            const target = document.getElementById('tTarget').value;
+            const part = document.getElementById('tPart').value === "" ? -1 : parseInt(document.getElementById('tPart').value);
+            const resultDiv = document.getElementById('result');
+            try { resultDiv.innerText = await runCommand("SetBlockVisible", target, false, part); } 
+            catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+        document.getElementById('btnSetLocked').addEventListener('click', async () => {
+            const target = document.getElementById('tTarget').value;
+            const resultDiv = document.getElementById('result');
+            try { resultDiv.innerText = await runCommand("SetBlockLocked", target, true); } 
+            catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+        document.getElementById('btnSetUnlocked').addEventListener('click', async () => {
+            const target = document.getElementById('tTarget').value;
+            const resultDiv = document.getElementById('result');
+            try { resultDiv.innerText = await runCommand("SetBlockLocked", target, false); } 
+            catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        function renderPlayerList() {
+            const listDiv = document.getElementById('playerList');
+            const players = Object.values(PatchWorld.players || {});
+            if (players.length === 0) {
+                listDiv.innerHTML = "<em>No players connected.</em>";
+                return;
+            }
+            let html = "<ul style='margin:0; padding-left:20px;'>";
+            players.forEach(p => {
+                html += `<li>${p.playerName} ${p.isLocal ? "<b>(Local)</b>" : ""} - <code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px;">${p.playerRef}</code></li>`;
+            });
+            html += "</ul>";
+            listDiv.innerHTML = html;
+        }
+
+        PatchWorld.onPlayerConnect = function(p) {
+            renderPlayerList();
+        };
+
+        PatchWorld.onPlayerDisconnect = function(p) {
+            renderPlayerList();
+        };
+
+        // Button action
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const inputVal = document.getElementById('toasterInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerText = "Sending command...";
+            
+            try {
+                // Call the ToasterMessage command using the shortcut with separate arguments
+                const response = await runCommand("ToasterMessage", inputVal);
+                resultDiv.innerText = `Success: ${response}`;
+            } catch (error) {
+                resultDiv.innerText = `Error: ${error}`;
+            }
+        });
+
+        // Jolt Button action
+        document.getElementById('sendJoltBtn').addEventListener('click', async () => {
+            const channel = document.getElementById('joltChannel').value;
+            const value = parseFloat(document.getElementById('joltValue').value) || 0;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerText = `Sending Jolt...`;
+            
+            try {
+                // SendWirelessJolt <float_value> <channelStr> <channelInt> <restrictionPathID>
+                await runCommand("SendWirelessJolt", value, channel, 0, "");
+                resultDiv.innerText = `Success: Sent ${value} to [${channel}]`;
+            } catch (error) {
+                resultDiv.innerText = `Error: ${error}`;
+            }
+        });
+
+        // Online Variables Buttons
+        const varKeyInput = document.getElementById('varKey');
+        const varValueInput = document.getElementById('varValue');
+
+        document.getElementById('postStrBtn').addEventListener('click', async () => {
+            const key = varKeyInput.value;
+            const val = varValueInput.value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Posting string...`;
+            try {
+                const response = await runCommand("PostString", key, val);
+                resultDiv.innerText = `PostString Result: ${response}`;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        document.getElementById('postValBtn').addEventListener('click', async () => {
+            const key = varKeyInput.value;
+            const val = parseFloat(varValueInput.value) || 0;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Posting value...`;
+            try {
+                const response = await runCommand("PostValue", key, val);
+                resultDiv.innerText = `PostValue Result: ${response}`;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        document.getElementById('fetchStrBtn').addEventListener('click', async () => {
+            const key = varKeyInput.value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Fetching string...`;
+            try {
+                const response = await runCommand("FetchString", key);
+                resultDiv.innerText = `FetchString Result: ${response}`;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        document.getElementById('fetchValBtn').addEventListener('click', async () => {
+            const key = varKeyInput.value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Fetching value...`;
+            try {
+                const response = await runCommand("FetchValue", key);
+                resultDiv.innerText = `FetchValue Result: ${response}`;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        // Copy Block Button
+        const copySourceInput = document.getElementById('copySourceId');
+        const copyParentInput = document.getElementById('copyParentId');
+
+        document.getElementById('copyBlockBtn').addEventListener('click', async () => {
+            const sourceId = copySourceInput.value;
+            const parentId = copyParentInput.value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Copying block...`;
+            try {
+                const response = await runCommand("CopyBlock", sourceId, parentId);
+                resultDiv.innerText = `CopyBlock Result: ${response}`;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        const removeDelayInput = document.getElementById('removeDelay');
+        document.getElementById('removeBlockBtn').addEventListener('click', async () => {
+            const sourceId = copySourceInput.value;
+            const delay = parseFloat(removeDelayInput.value) || 0;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Removing block...`;
+            try {
+                const response = await runCommand("RemoveBlock", sourceId, delay);
+                resultDiv.innerText = `RemoveBlock Result: ${response}`;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        // Transforms Buttons
+        function parseT(val) {
+            if (val === "UNCHANGED" || val.trim() === "") return PatchWorld.UNCHANGED;
+            let p = parseFloat(val);
+            return isNaN(p) ? PatchWorld.UNCHANGED : p;
+        }
+
+        function getCommonArgs() {
+            return [
+                document.getElementById('tTarget').value,
+                parseInt(document.getElementById('tPart').value) || 0,
+                document.getElementById('tSpace').value,
+                parseInt(document.getElementById('tSpacePart').value) || 0
+            ];
+        }
+
+        async function doTransformCommand(cmdName, isSet, useQuat) {
+            const args = getCommonArgs(); // target, part, space, spacePart
+            const x = parseT(document.getElementById('tX').value);
+            const y = parseT(document.getElementById('tY').value);
+            const z = parseT(document.getElementById('tZ').value);
+            const w = parseT(document.getElementById('tW').value);
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `${cmdName}...`;
+
+            try {
+                let callArgs;
+                if (isSet) {
+                    if (useQuat) {
+                        callArgs = [cmdName, args[0], x, y, z, w, args[1], args[2], args[3]];
+                    } else if (cmdName === "SetBlockScale") {
+                        callArgs = [cmdName, args[0], x, y, z, args[1]]; // Scale doesn't use Space
+                    } else {
+                        callArgs = [cmdName, args[0], x, y, z, args[1], args[2], args[3]];
+                    }
+                } else {
+                    if (cmdName === "GetBlockScale") {
+                        callArgs = [cmdName, args[0], args[1]]; // Scale doesn't use Space
+                    } else {
+                        callArgs = [cmdName, args[0], args[1], args[2], args[3]];
+                    }
+                }
+
+                const response = await runCommand(...callArgs);
+                resultDiv.innerText = `${cmdName} Result: ${response}`;
+                
+                // If it's a GET command, populate the inputs
+                if (!isSet && response.startsWith("{")) {
+                    const parsed = JSON.parse(response);
+                    document.getElementById('tX').value = parsed.x !== undefined ? parsed.x : "";
+                    document.getElementById('tY').value = parsed.y !== undefined ? parsed.y : "";
+                    document.getElementById('tZ').value = parsed.z !== undefined ? parsed.z : "";
+                    if (useQuat) document.getElementById('tW').value = parsed.w !== undefined ? parsed.w : "";
+                }
+            } catch (error) { 
+                resultDiv.innerText = `Error: ${error}`; 
+            }
+        }
+
+        document.getElementById('btnGetPos').addEventListener('click', () => doTransformCommand("GetBlockPosition", false, false));
+        document.getElementById('btnSetPos').addEventListener('click', () => doTransformCommand("SetBlockPosition", true, false));
+        
+        document.getElementById('btnGetRot').addEventListener('click', () => doTransformCommand("GetBlockRotation", false, false));
+        document.getElementById('btnSetRot').addEventListener('click', () => doTransformCommand("SetBlockRotation", true, false));
+
+        document.getElementById('btnGetQuat').addEventListener('click', () => doTransformCommand("GetBlockQuaternion", false, true));
+        document.getElementById('btnSetQuat').addEventListener('click', () => doTransformCommand("SetBlockQuaternion", true, true));
+
+        document.getElementById('btnGetScale').addEventListener('click', () => doTransformCommand("GetBlockScale", false, false));
+        document.getElementById('btnSetScale').addEventListener('click', () => doTransformCommand("SetBlockScale", true, false));
+
+        document.getElementById('btnGetInfo').addEventListener('click', async () => {
+            const target = document.getElementById('tTarget').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Fetching Block Info...`;
+            try {
+                const response = await runCommand("GetBlockInfo", target);
+                if (response.startsWith("{")) {
+                    const parsed = JSON.parse(response);
+                    // Format JSON nicely in the result div
+                    resultDiv.innerHTML = `<pre style="text-align: left; margin: 0; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(parsed, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerText = `GetBlockInfo Result: ${response}`;
+                }
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        document.getElementById('btnPlaceInFront').addEventListener('click', async () => {
+            if (!PatchWorld.LocalPlayer) {
+                document.getElementById('result').innerText = "Error: LocalPlayer not found. Are we connected?";
+                return;
+            }
+            const target = document.getElementById('tTarget').value;
+            const part = parseInt(document.getElementById('tPart').value) || 0;
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Placing in front of head...`;
+            try {
+                const response = await runCommand("SetBlockPosition", target, 0, 0, 0.4, part, PatchWorld.LocalPlayer.playerRef, PatchWorld.PlayerBodyPart.Head);
+                resultDiv.innerText = `PlaceInFront Result: ${response}`;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+    </script>
+</body>
+</html>
