@@ -232,6 +232,23 @@ window.PatchWorld = {
         if (!window.vuplex) return Promise.reject("Vuplex not available");
         window.vuplex.postMessage({ type: "pxr.bridge.io", action: "removePartRef", blockId: targetBlock, partId: partID });
         return Promise.resolve();
+    },
+
+    sendWirelessJolt: function(channel, value, channelID = 0, restriction = "") {
+        return this.runCommand(`SendWirelessJolt ${value} "${channel}" ${channelID} "${restriction}"`);
+    },
+
+    wifiCallbacks: {},
+    onWifiJolt: null,
+
+    subscribeWifi: function(channel, callback) {
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        if (callback) {
+            if (!this.wifiCallbacks[channel]) this.wifiCallbacks[channel] = [];
+            this.wifiCallbacks[channel].push(callback);
+        }
+        window.vuplex.postMessage({ type: "pxr.bridge.wifi", action: "subscribe", channel: channel });
+        return Promise.resolve();
     }
 };
 
@@ -288,9 +305,20 @@ function setupBridgeListeners() {
                 window.PatchWorld.players = {};
                 window.PatchWorld.LocalPlayer = null;
                 window.PatchWorld.variablesCache = {};
+                window.PatchWorld.wifiCallbacks = {};
 
                 if (typeof window.PatchWorld.onDisconnected === 'function') {
                     window.PatchWorld.onDisconnected();
+                }
+            }
+            else if (message.type === "pxr.bridge.wifi") {
+                const channel = message.channel;
+                const value = message.value;
+                if (window.PatchWorld.wifiCallbacks[channel]) {
+                    window.PatchWorld.wifiCallbacks[channel].forEach(cb => cb(value));
+                }
+                if (typeof window.PatchWorld.onWifiJolt === 'function') {
+                    window.PatchWorld.onWifiJolt(channel, value);
                 }
             }
             else if (message.type === "pxr.bridge.var") {

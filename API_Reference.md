@@ -180,13 +180,23 @@ If you only want to change one axis, pass the magic number `PatchWorld.UNCHANGED
 ### 🍞 UI & Feedback
 - **`ToasterMessage <string>`** : Displays a temporary text popup (Toaster) in front of the player. Example: `ToasterMessage Hello PatchWorld`.
 
-### 📡 Wireless Connectivity
-- **`SendWirelessJolt <float_value> <channelStr> <channelInt> <restrictionPathID>`** : Sends a wireless event (Jolt) to any block listening on the specified channel.
-  - `float_value`: The value to send.
+### 📡 Wireless Connectivity (Wifi Jolts)
+PatchWorld allows blocks to send wireless triggers (Jolts) across the room on named channels. The WebBridge API lets Javascript both broadcast and subscribe to these events.
+- **`sendWirelessJolt(channelStr, value, [channelInt], [restrictionPathID])`** : Sends a wireless event (Jolt) to any block or script listening on the channel.
   - `channelStr`: The string name of the channel.
-  - `channelInt`: The integer ID of the channel (use `0` for any).
-  - `restrictionPathID`: (Optional) Provide the PathID of a specific block/subpatch to restrict the broadcast to that block only. Use `""` for no restriction.
-  - Example: `SendWirelessJolt 1.0 "trigger" 0 ""`
+  - `value`: The numeric value to send.
+  - `channelInt`: (Optional, default `0`) The integer channel ID.
+  - `restrictionPathID`: (Optional, default `""`) Restrict the broadcast to a specific block hierarchy.
+  - Example: `await PatchWorld.sendWirelessJolt("trigger", 1.0)`
+- **`subscribeWifi(channelStr, [callback])`** : Subscribes the UI to listen for any wireless jolt fired on `channelStr`.
+
+#### Wireless Callbacks
+You can either pass a callback directly to `subscribeWifi("trigger", (val) => ...)` or override the global hook:
+```javascript
+PatchWorld.onWifiJolt = (channel, value) => {
+    console.log(`Received jolt on ${channel}: ${value}`);
+};
+```
 
 ### 🔢 Variable System
 PatchWorld's Variable System allows you to attach numeric values to blocks dynamically at runtime. The WebBridge provides an advanced **Subscription and Local Cache API** to read variables instantly without stuttering the framerate.

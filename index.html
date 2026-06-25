@@ -232,6 +232,23 @@
         </div>
         
         <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+
+        <h2 style="font-size: 16px; margin-bottom: 10px;">Wireless Jolts (Wifi)</h2>
+        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="wifiChanInput" placeholder="Channel (e.g. trigger)" disabled style="margin-bottom: 0;">
+                <button id="btnSubscribeWifi" disabled style="background-color: #16a085;">Subscribe</button>
+            </div>
+            <div id="wifiLogList" style="font-size: 11px; font-family: monospace; text-align: left; background: #1a1a2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; max-height: 100px; overflow-y: auto;">
+                <em>No wifi jolts received yet.</em>
+            </div>
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="wifiSendVal" placeholder="Value" value="1" disabled style="margin-bottom: 0; width: 80px;">
+                <button id="btnSendWifi" disabled style="background-color: #27ae60; width: 100%;">Send Wireless Jolt</button>
+            </div>
+        </div>
+        
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
         
         <h2 style="font-size: 16px; margin-bottom: 10px;">Online Variables</h2>
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -295,6 +312,10 @@
             document.getElementById('btnSetSysVar').disabled = false;
             document.getElementById('btnRemoveSysVar').disabled = false;
             document.getElementById('btnGetAllSysVar').disabled = false;
+            document.getElementById('wifiChanInput').disabled = false;
+            document.getElementById('btnSubscribeWifi').disabled = false;
+            document.getElementById('wifiSendVal').disabled = false;
+            document.getElementById('btnSendWifi').disabled = false;
             document.getElementById('varKey').disabled = false;
             document.getElementById('varValue').disabled = false;
             document.getElementById('postStrBtn').disabled = false;
@@ -343,6 +364,10 @@
             document.getElementById('joltChannel').disabled = true;
             document.getElementById('joltValue').disabled = true;
             document.getElementById('sendJoltBtn').disabled = true;
+            document.getElementById('wifiChanInput').disabled = true;
+            document.getElementById('btnSubscribeWifi').disabled = true;
+            document.getElementById('wifiSendVal').disabled = true;
+            document.getElementById('btnSendWifi').disabled = true;
             document.getElementById('varKey').disabled = true;
             document.getElementById('varValue').disabled = true;
             document.getElementById('postStrBtn').disabled = true;
@@ -594,6 +619,30 @@
             const list = PatchWorld.getAllWithVariable(varName);
             console.log(`GetAllWithVariable("${varName}"):`, JSON.stringify(list));
             document.getElementById('result').innerText = `Logged ${list.length} entries for "${varName}" to console`;
+        });
+
+        // Wifi Jolts Handlers
+        PatchWorld.onWifiJolt = function(chan, val) {
+            const listDiv = document.getElementById('wifiLogList');
+            if (listDiv.querySelector('em')) listDiv.innerHTML = '';
+            const entry = document.createElement('div');
+            entry.innerText = `[${new Date().toLocaleTimeString()}] Channel "${chan}": ${val}`;
+            listDiv.prepend(entry);
+        };
+
+        document.getElementById('btnSubscribeWifi').addEventListener('click', async () => {
+            const chan = document.getElementById('wifiChanInput').value;
+            if (!chan) return;
+            await PatchWorld.subscribeWifi(chan);
+            document.getElementById('result').innerText = `Subscribed to wifi channel "${chan}"`;
+        });
+
+        document.getElementById('btnSendWifi').addEventListener('click', async () => {
+            const chan = document.getElementById('wifiChanInput').value;
+            const val = parseFloat(document.getElementById('wifiSendVal').value) || 0;
+            if (!chan) return;
+            await PatchWorld.sendWirelessJolt(chan, val);
+            document.getElementById('result').innerText = `Sent wireless jolt ${val} to "${chan}"`;
         });
 
         // Online Variables Buttons
