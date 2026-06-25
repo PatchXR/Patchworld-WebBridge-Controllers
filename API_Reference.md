@@ -41,6 +41,7 @@ When the bridge connects, it passes a `context` object containing essential sess
 Override these properties on `PatchWorld` to react to state changes:
 - `PatchWorld.onBeforeData = function() { ... }` : Called when the bridge is ready, right before the initial `pxr.bridge.context` data is processed. Use this to clear your local state.
 - `PatchWorld.onData = function() { ... }` : Called when the Unity bridge has established a connection and provided the `context` object.
+- `PatchWorld.onWorldReady = function() { ... }` : Called when the world scene is fully loaded and, if in multiplayer, initial room state synchronization (`JoinState.Done`) is complete. If the bridge reconnects while the world is already ready, this callback triggers immediately.
 - `PatchWorld.onDisconnected = function() { ... }` : Called when the block is disconnected or destroyed in PatchWorld.
 
 ### Player Callbacks & Data

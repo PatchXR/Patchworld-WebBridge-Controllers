@@ -276,7 +276,7 @@
     </div>
 
     <!-- Include the PatchWorld Bridge API -->
-    <script src="patchworld-bridge.js?v=wifi1"></script>
+    <script src="patchworld-bridge.js?v=wr1"></script>
 
     <script>
         // Set up Lifecycle Hooks
@@ -350,6 +350,11 @@
             transformInputs.forEach(id => document.getElementById(id).disabled = false);
             
             renderPlayerList();
+        };
+
+        PatchWorld.onWorldReady = function() {
+            document.getElementById('connectionStatus').innerText = "Connected (World & MP Ready)";
+            document.getElementById('result').innerText = "World is loaded & multiplayer sync complete!";
         };
 
         PatchWorld.onDisconnected = function() {

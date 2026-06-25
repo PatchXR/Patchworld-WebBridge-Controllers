@@ -28,6 +28,7 @@ window.PatchWorld = {
     // Lifecycle hooks that developers can override
     onBeforeData: null,
     onData: null,
+    onWorldReady: null,
     onDisconnected: null,
     
     // Player events
@@ -309,6 +310,12 @@ function setupBridgeListeners() {
 
                 if (typeof window.PatchWorld.onDisconnected === 'function') {
                     window.PatchWorld.onDisconnected();
+                }
+            }
+            else if (message.type === "pxr.bridge.worldReady") {
+                console.log("[PatchWorld] World is loaded and multiplayer synchronization is complete (OnWorldReady)");
+                if (typeof window.PatchWorld.onWorldReady === 'function') {
+                    window.PatchWorld.onWorldReady();
                 }
             }
             else if (message.type === "pxr.bridge.wifi") {
