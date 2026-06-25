@@ -82,7 +82,9 @@ Override these properties on `PatchWorld` to receive physical inputs:
 
 Use these helper methods to trigger physical outputs:
 - `await PatchWorld.interfaceMessageOut(txt)` : Sends text to the physical "Text Out" connection.
-- `await PatchWorld.interfaceSendJolt(value)` : Emits a physical jolt from "Jolt Out".
+- `await PatchWorld.interfaceSendJoltA(value)` : Emits a physical jolt from "Jolt Out A" (the first Jolt emitter on the block).
+- `await PatchWorld.interfaceSendJoltB(value)` : Emits a physical jolt from "Jolt Out B" (the second Jolt emitter on the block).
+- `await PatchWorld.interfaceSendJolt(value)` : Alias for `interfaceSendJoltA`.
 - `await PatchWorld.interfaceClearPartRefs()` : Disconnects all blocks from the "Parts Out" store.
 - `await PatchWorld.interfaceAddPartRef(targetBlock, partID)` : Connects a specific block to "Parts Out".
 - `await PatchWorld.interfaceRemovePartRef(targetBlock, partID)` : Disconnects a specific block from "Parts Out".

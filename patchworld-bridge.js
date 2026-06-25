@@ -157,7 +157,19 @@ window.PatchWorld = {
     
     interfaceSendJolt: function(value) {
         if (!window.vuplex) return Promise.reject("Vuplex not available");
-        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "sendJolt", value: value });
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "sendJoltA", value: value });
+        return Promise.resolve();
+    },
+
+    interfaceSendJoltA: function(value) {
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "sendJoltA", value: value });
+        return Promise.resolve();
+    },
+    
+    interfaceSendJoltB: function(value) {
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "sendJoltB", value: value });
         return Promise.resolve();
     },
     

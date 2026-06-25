@@ -132,7 +132,8 @@
                 
                 <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                     <input type="number" id="outJoltVal" placeholder="Value" value="1" step="0.1" disabled style="margin-bottom: 0; width: 80px;">
-                    <button id="btnOutJolt" disabled style="background-color: #c0392b; padding: 5px; flex-grow: 1;">Send Jolt</button>
+                    <button id="btnOutJoltA" disabled style="background-color: #c0392b; padding: 5px; flex-grow: 1;">Send Jolt A</button>
+                    <button id="btnOutJoltB" disabled style="background-color: #e74c3c; padding: 5px; flex-grow: 1;">Send Jolt B</button>
                 </div>
             </div>
         </div>
@@ -293,7 +294,8 @@
             document.getElementById('btnOutText').disabled = false;
             document.getElementById('btnOutAddLocalPlayer').disabled = false;
             document.getElementById('outJoltVal').disabled = false;
-            document.getElementById('btnOutJolt').disabled = false;
+            document.getElementById('btnOutJoltA').disabled = false;
+            document.getElementById('btnOutJoltB').disabled = false;
             
             const transformInputs = ['tTarget', 'tPart', 'tSpace', 'tSpacePart', 'tX', 'tY', 'tZ', 'tW', 
                 'btnGetPos', 'btnSetPos', 'btnGetRot', 'btnSetRot', 'btnGetQuat', 'btnSetQuat', 'btnGetScale', 'btnSetScale'];
@@ -340,7 +342,8 @@
             document.getElementById('btnOutText').disabled = true;
             document.getElementById('btnOutAddLocalPlayer').disabled = true;
             document.getElementById('outJoltVal').disabled = true;
-            document.getElementById('btnOutJolt').disabled = true;
+            document.getElementById('btnOutJoltA').disabled = true;
+            document.getElementById('btnOutJoltB').disabled = true;
 
             const transformInputs = ['tSpace', 'tSpacePart', 'tX', 'tY', 'tZ', 'tW', 
                 'btnGetPos', 'btnSetPos', 'btnGetRot', 'btnSetRot', 'btnGetQuat', 'btnSetQuat', 'btnGetScale', 'btnSetScale'];
@@ -402,9 +405,15 @@
             }
         });
 
-        document.getElementById('btnOutJolt').addEventListener('click', async () => {
+        document.getElementById('btnOutJoltA').addEventListener('click', async () => {
             const val = parseFloat(document.getElementById('outJoltVal').value) || 0;
-            try { await PatchWorld.interfaceSendJolt(val); }
+            try { await PatchWorld.interfaceSendJoltA(val); }
+            catch (error) { document.getElementById('result').innerText = `Error: ${error}`; }
+        });
+
+        document.getElementById('btnOutJoltB').addEventListener('click', async () => {
+            const val = parseFloat(document.getElementById('outJoltVal').value) || 0;
+            try { await PatchWorld.interfaceSendJoltB(val); }
             catch (error) { document.getElementById('result').innerText = `Error: ${error}`; }
         });
 
