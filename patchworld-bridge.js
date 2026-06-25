@@ -4,7 +4,18 @@
  */
 
 window.PatchWorld = {
-    // Stores the latest context data received from Unity
+    /**
+     * Stores the latest context data received from Unity.
+     * @type {{
+     *   worldId: string,          // The current World's unique ID
+     *   isOwner: boolean,         // Whether the local user is the owner of the world
+     *   productId: string,        // The Product ID (if applicable)
+     *   localPlayer: Object,      // The Local Player object (see below)
+     *   masterId: string,         // The playerId of the current Master Client
+     *   bridgeId: string,         // The fullID of the PatchworldWebBridge block
+     *   browserId: string         // The fullID of the Browser block running this UI
+     * }}
+     */
     context: null,
 
     // Stores connected players by playerRef
@@ -22,6 +33,11 @@ window.PatchWorld = {
     // Player events
     onPlayerConnect: null,
     onPlayerDisconnect: null,
+    onMasterChanged: null,
+
+    // Scene events
+    onBlockSpawned: null,
+    onBlockRemoved: null,
 
     // Interface Block IO events
     onInterfaceMessageIn: null,
@@ -133,28 +149,33 @@ window.PatchWorld = {
      * These require the bridge to be active (context.bridgeId must exist).
      */
     interfaceMessageOut: function(txt) {
-        if (!this.context || !this.context.bridgeId) return Promise.reject("Bridge ID not found");
-        return this.runCommand("InterfaceMessageOut", this.context.bridgeId, txt);
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "messageOut", value: txt });
+        return Promise.resolve();
     },
     
     interfaceSendJolt: function(value) {
-        if (!this.context || !this.context.bridgeId) return Promise.reject("Bridge ID not found");
-        return this.runCommand("InterfaceSendJolt", this.context.bridgeId, value);
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "sendJolt", value: value });
+        return Promise.resolve();
     },
     
     interfaceClearPartRefs: function() {
-        if (!this.context || !this.context.bridgeId) return Promise.reject("Bridge ID not found");
-        return this.runCommand("InterfaceClearPartRefs", this.context.bridgeId);
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "clearPartRefs" });
+        return Promise.resolve();
     },
     
     interfaceAddPartRef: function(targetBlock, partID = -1) {
-        if (!this.context || !this.context.bridgeId) return Promise.reject("Bridge ID not found");
-        return this.runCommand("InterfaceAddPartRef", this.context.bridgeId, targetBlock, partID);
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "addPartRef", blockId: targetBlock, partId: partID });
+        return Promise.resolve();
     },
     
     interfaceRemovePartRef: function(targetBlock, partID = -1) {
-        if (!this.context || !this.context.bridgeId) return Promise.reject("Bridge ID not found");
-        return this.runCommand("InterfaceRemovePartRef", this.context.bridgeId, targetBlock, partID);
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "removePartRef", blockId: targetBlock, partId: partID });
+        return Promise.resolve();
     }
 };
 
@@ -198,6 +219,10 @@ function setupBridgeListeners() {
                 
                 window.PatchWorld.context = message.data;
                 
+                if (window.PatchWorld.context.masterId) {
+                    window.PatchWorld.masterId = window.PatchWorld.context.masterId;
+                }
+                
                 if (typeof window.PatchWorld.onData === 'function') {
                     window.PatchWorld.onData(window.PatchWorld.context);
                 }
@@ -235,9 +260,28 @@ function setupBridgeListeners() {
         }
     };
 
+    window.PatchWorld._internal_onMasterChanged = function(masterId) {
+        window.PatchWorld.masterId = masterId;
+        if (typeof window.PatchWorld.onMasterChanged === 'function') {
+            window.PatchWorld.onMasterChanged(masterId);
+        }
+    };
+
     window.PatchWorld._internal_onInterfaceMessageIn = function(txt) {
         if (typeof window.PatchWorld.onInterfaceMessageIn === 'function') {
             window.PatchWorld.onInterfaceMessageIn(txt);
+        }
+    };
+
+    window.PatchWorld._internal_onBlockSpawned = function(data) {
+        if (typeof window.PatchWorld.onBlockSpawned === 'function') {
+            window.PatchWorld.onBlockSpawned(data);
+        }
+    };
+
+    window.PatchWorld._internal_onBlockRemoved = function(data) {
+        if (typeof window.PatchWorld.onBlockRemoved === 'function') {
+            window.PatchWorld.onBlockRemoved(data);
         }
     };
 

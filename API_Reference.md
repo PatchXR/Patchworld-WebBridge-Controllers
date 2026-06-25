@@ -23,6 +23,20 @@ This library allows you to communicate directly with the PatchWorld game engine 
 PatchWorld automatically provides context data to your Web UI (like the Player Name, User ID, World ID, etc.).
 To manage state cleanly, the API provides **Lifecycle Hooks**.
 
+### The Context Object
+When the bridge connects, it passes a `context` object containing essential session data. You can access it anytime via `window.PatchWorld.context`:
+```json
+{
+  "worldId": "current_world_uuid",
+  "isOwner": true,
+  "productId": "world_product_id",
+  "localPlayer": { ... },
+  "masterId": "player_id_of_current_master",
+  "bridgeId": "1234/5678",   // The fullID of the PatchworldWebBridge block
+  "browserId": "1234/9999"   // The fullID of the Browser block displaying this UI
+}
+```
+
 ### Connection Callbacks
 Override these properties on `PatchWorld` to react to state changes:
 - `PatchWorld.onBeforeData = function() { ... }` : Called when the bridge is ready, right before the initial `pxr.bridge.context` data is processed. Use this to clear your local state.
@@ -35,6 +49,7 @@ Players in the room (including the LocalPlayer) are synchronized to the JavaScri
 - **`PatchWorld.LocalPlayer`** : A direct reference to the Local Player object, or `null` if not found.
 - `PatchWorld.onPlayerConnect = function(player) { ... }` : Called whenever a new player joins the room or is already in the room when the UI connects.
 - `PatchWorld.onPlayerDisconnect = function(player) { ... }` : Called whenever a player leaves the room.
+- `PatchWorld.onMasterChanged = function(masterId) { ... }` : Called when the Master Client of the room changes (e.g., the previous Master disconnects). `masterId` is the `playerId` of the new Master.
 
 **Player Object Format:**
 ```json
@@ -51,6 +66,11 @@ The context is passed as an argument to `onData`, but you can also access it any
 ```javascript
 console.log(window.PatchWorld.context.username);
 ```
+
+### 🌍 Scene Callbacks & Data
+You can react to blocks being spawned or destroyed in the scene. To avoid flooding the Bridge when large groups are spawned, these callbacks are **only triggered for root blocks** (blocks that are not children of another group).
+- `PatchWorld.onBlockSpawned = function(data) { ... }` : Called when a root block or group is spawned in the world. `data` is an object: `{ fullId, name }`.
+- `PatchWorld.onBlockRemoved = function(data) { ... }` : Called when a root block or group is deleted. `data` is an object: `{ fullId, name }`.
 
 ### 🎛️ Physical Block Interface (IO)
 The WebBridge block in PatchWorld has physical inputs and outputs you can interact with from Javascript.

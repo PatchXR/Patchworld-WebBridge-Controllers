@@ -421,7 +421,14 @@
             }
             let html = "<ul style='margin:0; padding-left:20px;'>";
             players.forEach(p => {
-                html += `<li>${p.playerName} ${p.isLocal ? "<b>(Local)</b>" : ""} - <code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px;">${p.playerRef}</code></li>`;
+                const isMaster = p.playerId === PatchWorld.masterId;
+                const badges = [];
+                if (p.isLocal) badges.push("<b>(Local)</b>");
+                if (isMaster) badges.push("<span style='color: #f1c40f;'>👑 Master</span>");
+                
+                const badgeStr = badges.length > 0 ? ` ${badges.join(" ")}` : "";
+                
+                html += `<li>${p.playerName}${badgeStr} - <code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px;">${p.playerRef}</code></li>`;
             });
             html += "</ul>";
             listDiv.innerHTML = html;
@@ -432,6 +439,10 @@
         };
 
         PatchWorld.onPlayerDisconnect = function(p) {
+            renderPlayerList();
+        };
+        
+        PatchWorld.onMasterChanged = function(masterId) {
             renderPlayerList();
         };
 
@@ -644,6 +655,25 @@
                 resultDiv.innerText = `PlaceInFront Result: ${response}`;
             } catch (error) { resultDiv.innerText = `Error: ${error}`; }
         });
+        
+        // Debug Counters
+        let blocksSpawnedCount = 0;
+        let blocksRemovedCount = 0;
+        
+        PatchWorld.onBlockSpawned = function(data) {
+            blocksSpawnedCount++;
+            document.getElementById('spawnedCount').innerText = blocksSpawnedCount;
+        };
+
+        PatchWorld.onBlockRemoved = function(data) {
+            blocksRemovedCount++;
+            document.getElementById('removedCount').innerText = blocksRemovedCount;
+        };
     </script>
+    
+    <div style="margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #333; padding-top: 10px;">
+        <div>Total block spawned : <span id="spawnedCount">0</span></div>
+        <div>Total block removed : <span id="removedCount">0</span></div>
+    </div>
 </body>
 </html>
