@@ -128,6 +128,7 @@ window.PatchWorld = {
         }).join(' ');
 
         const fullCommandString = `${commandName} ${argsString}`.trim();
+        console.log(`[PatchWorld] Sending command: ${fullCommandString}`);
         return this.sendToPatchWorld("RunCommand", fullCommandString);
     },
 
