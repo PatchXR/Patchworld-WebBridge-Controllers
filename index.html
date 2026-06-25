@@ -445,8 +445,11 @@
             document.getElementById('dispMessageIn').innerText = txt;
         };
 
-        PatchWorld.onInterfaceInputJolt = function(value) {
-            document.getElementById('dispJoltIn').innerText = value;
+        PatchWorld.onInterfaceInputJoltA = function(value) {
+            document.getElementById('dispJoltIn').innerText = `${value} (Jolt A)`;
+        };
+        PatchWorld.onInterfaceInputJoltB = function(value) {
+            document.getElementById('dispJoltIn').innerText = `${value} (Jolt B)`;
         };
 
         document.getElementById('btnOutText').addEventListener('click', async () => {

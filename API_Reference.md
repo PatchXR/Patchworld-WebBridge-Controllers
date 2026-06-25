@@ -79,13 +79,13 @@ Override these properties on `PatchWorld` to receive physical inputs:
 - `PatchWorld.onInterfaceMessageIn = function(txt) { ... }` : Receives text from the "Text In" physical connection.
 - `PatchWorld.onInterfaceInputPartConnected = function(data) { ... }` : Called when a block is plugged into the "Parts In" connection. `data` is an object: `{ fullId, partId }`.
 - `PatchWorld.onInterfaceInputPartDisconnected = function(data) { ... }` : Called when a block is unplugged.
-- `PatchWorld.onInterfaceInputJolt = function(value) { ... }` : Called when the "Jolt In" receives a physical trigger.
+- `PatchWorld.onInterfaceInputJoltA = function(value) { ... }` : Called when "Jolt In A" (the first Jolt receiver on the block) receives a physical trigger.
+- `PatchWorld.onInterfaceInputJoltB = function(value) { ... }` : Called when "Jolt In B" (the second Jolt receiver on the block) receives a physical trigger.
 
 Use these helper methods to trigger physical outputs:
 - `await PatchWorld.interfaceMessageOut(txt)` : Sends text to the physical "Text Out" connection.
 - `await PatchWorld.interfaceSendJoltA(value)` : Emits a physical jolt from "Jolt Out A" (the first Jolt emitter on the block).
 - `await PatchWorld.interfaceSendJoltB(value)` : Emits a physical jolt from "Jolt Out B" (the second Jolt emitter on the block).
-- `await PatchWorld.interfaceSendJolt(value)` : Alias for `interfaceSendJoltA`.
 - `await PatchWorld.interfaceClearPartRefs()` : Disconnects all blocks from the "Parts Out" store.
 - `await PatchWorld.interfaceAddPartRef(targetBlock, partID)` : Connects a specific block to "Parts Out".
 - `await PatchWorld.interfaceRemovePartRef(targetBlock, partID)` : Disconnects a specific block from "Parts Out".

@@ -46,7 +46,8 @@ window.PatchWorld = Object.assign(window.PatchWorld || {}, {
     onInterfaceMessageIn: null,
     onInterfaceInputPartConnected: null,
     onInterfaceInputPartDisconnected: null,
-    onInterfaceInputJolt: null,
+    onInterfaceInputJoltA: null,
+    onInterfaceInputJoltB: null,
 
     // Enum matching C# BodyPart for targeting player parts
     PlayerBodyPart: {
@@ -201,12 +202,6 @@ window.PatchWorld = Object.assign(window.PatchWorld || {}, {
         return Promise.resolve();
     },
     
-    interfaceSendJolt: function(value) {
-        if (!window.vuplex) return Promise.reject("Vuplex not available");
-        window.vuplex.postMessage({ type: "pxr.bridge.io", action: "sendJoltA", value: value });
-        return Promise.resolve();
-    },
-
     interfaceSendJoltA: function(value) {
         if (!window.vuplex) return Promise.reject("Vuplex not available");
         window.vuplex.postMessage({ type: "pxr.bridge.io", action: "sendJoltA", value: value });
@@ -500,9 +495,15 @@ function setupBridgeListeners() {
         }
     };
 
-    window.PatchWorld._internal_onInterfaceInputJolt = function(value) {
-        if (typeof window.PatchWorld.onInterfaceInputJolt === 'function') {
-            window.PatchWorld.onInterfaceInputJolt(value);
+    window.PatchWorld._internal_onInterfaceInputJoltA = function(value) {
+        if (typeof window.PatchWorld.onInterfaceInputJoltA === 'function') {
+            window.PatchWorld.onInterfaceInputJoltA(value);
+        }
+    };
+
+    window.PatchWorld._internal_onInterfaceInputJoltB = function(value) {
+        if (typeof window.PatchWorld.onInterfaceInputJoltB === 'function') {
+            window.PatchWorld.onInterfaceInputJoltB(value);
         }
     };
 
