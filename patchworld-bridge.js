@@ -3,6 +3,8 @@
  * Allows bidirectional communication between a web page and the PatchWorld game engine.
  */
 
+console.log("patchworld-bridge v1.0");
+
 window.PatchWorld = {
     /**
      * Stores the latest context data received from Unity.

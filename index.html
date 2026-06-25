@@ -276,7 +276,7 @@
     </div>
 
     <!-- Include the PatchWorld Bridge API -->
-    <script src="patchworld-bridge.js?v=wr1"></script>
+    <script src="patchworld-bridge.js?v=1.0"></script>
 
     <script>
         // Set up Lifecycle Hooks
@@ -288,6 +288,7 @@
         };
 
         PatchWorld.onData = function(context) {
+            console.log("patchworld-bridge v1.0");
             console.log("Initializing UI with context data...");
             // Called when connection is established and data is received
             document.getElementById('connectionStatus').innerText = "Connected to " + (context.worldId || "World");
