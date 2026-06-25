@@ -9,12 +9,24 @@ This repository contains a simple, working example of a web page that communicat
 
 **This web page is designed to be opened INSIDE PatchWorld** using the `webview_browser` block. Once loaded in your world, it acts as a powerful bridge that lets you script custom game logic using JavaScript!
 
-With the Web Bridge, you can:
-- **Spawn, move, and remove blocks** dynamically.
-- **Execute Jolts (events)** to trigger complex logic chains.
-- **Change the state of the game** (for example, creating a custom UI for a Tower Defense game).
-- **Interface hardware** by using browser APIs to connect MIDI controllers, gamepads, or other devices directly to PatchWorld.
-- **Build custom UI panels** that were previously impossible to create with standard blocks.
+With the Web Bridge, you unlock limitless creative possibilities:
+
+### 🔌 Physical & Cable Connectivity
+Plug cables directly into the bridge block in VR to interact with your scene:
+- **Physical I/O Cables**: Send and receive strings (`Text Messages in/out`), trigger instant jolt pulses (`Jolt A / B`), or retrieve direct references to connected target blocks.
+
+### 📡 Wireless Bridges
+Communicate across the entire world without running physical cables:
+- **Wireless Jolts**: Bidirectionally broadcast and subscribe to named wireless event channels anywhere in the room.
+- **Reactive Variable System**: Subscribe to live gameplay variables (like `Score` or `Health`). Your UI updates automatically whenever the value changes, and you can get/set/remove variables on target blocks.
+
+### ☁️ Cloud Data & Persistence
+- **Online Server Storage**: Post and fetch persistent key-value data directly on the PatchXR backend servers to save player progress, high scores, or custom world states across sessions.
+
+### 🎨 Scene & Block Manipulation
+- **Set Serialization**: Dynamically apply partial or full `.patch` serialization strings to modify objects and create generative worlds on the fly.
+- **Lifecycle & Transforms**: Spawn new blocks from the library, move and rotate objects in 3D space, lock/unlock items, or hide/remove blocks.
+- **Internal Console Commands**: Run internal engine or AI console commands directly from JavaScript.
 
 For a full list of commands and how the communication works behind the scenes, please refer to the [API Reference](API_Reference.md). *(Note: make sure `API_Reference.md` is copied into this repository!)*
 
