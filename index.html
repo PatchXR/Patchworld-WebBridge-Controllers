@@ -241,6 +241,7 @@
         };
 
         PatchWorld.onData = function(context) {
+            console.log("Initializing UI with context data...");
             // Called when connection is established and data is received
             document.getElementById('connectionStatus').innerText = "Connected to " + (context.worldId || "World");
             document.getElementById('connectionStatus').className = "status connected";
@@ -661,6 +662,7 @@
         let blocksRemovedCount = 0;
         
         PatchWorld.onBlockSpawned = function(data) {
+            console.log(`Block spawned: ${data.name} (${data.fullId})`);
             blocksSpawnedCount++;
             document.getElementById('spawnedCount').innerText = blocksSpawnedCount;
         };
