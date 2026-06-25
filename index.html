@@ -592,7 +592,7 @@
             const varName = sysVarNameInput.value;
             if (!varName) return;
             const list = PatchWorld.getAllWithVariable(varName);
-            console.log(`GetAllWithVariable("${varName}"):`, list);
+            console.log(`GetAllWithVariable("${varName}"):`, JSON.stringify(list));
             document.getElementById('result').innerText = `Logged ${list.length} entries for "${varName}" to console`;
         });
 
