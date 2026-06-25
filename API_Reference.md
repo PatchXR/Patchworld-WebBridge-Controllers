@@ -226,6 +226,9 @@ PatchWorld.onVariableRemoved = (varName, fullID, partID) => { ... }
 ### ☁️ REST API (Server Queries & Thumbnails)
 PatchWorld WebView runs with full network access. `PatchWorld` exports `API_URL` (`https://api.patchxr.io`) and async helper methods to query public server data directly from JavaScript:
 
+> [!NOTE]
+> **CORS Notice for Desktop Browser Testing**: When testing `index.html` locally on your PC (e.g., via `file://` or `localhost`), external `fetch()` calls to `api.patchxr.io` may fail with `HTTP 500` or CORS errors. Inside PatchWorld VR, WebView runs without CORS restrictions, so these queries will succeed!
+
 - **`PatchWorld.API_URL`**: Base endpoint constant (`"https://api.patchxr.io"`).
 - **`fetchAsset(assetId)`**: Returns metadata for a public library asset (e.g. `file`, `thumbUrl`, `category`).
 - **`fetchUserProfile(userId)`**: Returns public player profile information (e.g. `username`, `avatar`, `bio`).

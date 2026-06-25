@@ -263,6 +263,15 @@ window.PatchWorld = {
      * @returns {Promise<any>}
      */
     fetchAsset: async function(assetId) {
+        if (!assetId) throw new Error("Empty asset ID");
+        if (window.vuplex) {
+            try {
+                const res = await this.runCommand("FetchAssetMeta", assetId);
+                if (res && res !== "null" && typeof res === 'string' && !res.startsWith("ERROR")) {
+                    return JSON.parse(res);
+                }
+            } catch(e) { console.warn("Bridge FetchAssetMeta fallback:", e); }
+        }
         const res = await fetch(`${this.API_URL}/assets/${assetId}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
@@ -274,6 +283,15 @@ window.PatchWorld = {
      * @returns {Promise<any>}
      */
     fetchUserProfile: async function(userId) {
+        if (!userId) throw new Error("Empty user ID");
+        if (window.vuplex) {
+            try {
+                const res = await this.runCommand("FetchUserProfile", userId);
+                if (res && res !== "null" && typeof res === 'string' && !res.startsWith("ERROR")) {
+                    return JSON.parse(res);
+                }
+            } catch(e) { console.warn("Bridge FetchUserProfile fallback:", e); }
+        }
         const res = await fetch(`${this.API_URL}/user/${userId}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
@@ -285,6 +303,15 @@ window.PatchWorld = {
      * @returns {Promise<any>}
      */
     fetchUserAssetLibrary: async function(userId) {
+        if (!userId) throw new Error("Empty user ID");
+        if (window.vuplex) {
+            try {
+                const res = await this.runCommand("FetchUserAssetLibrary", userId);
+                if (res && res !== "null" && typeof res === 'string' && !res.startsWith("ERROR")) {
+                    return JSON.parse(res);
+                }
+            } catch(e) { console.warn("Bridge FetchUserAssetLibrary fallback:", e); }
+        }
         const res = await fetch(`${this.API_URL}/assets/user-library/${userId}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
