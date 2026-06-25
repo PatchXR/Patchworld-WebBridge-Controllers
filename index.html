@@ -275,8 +275,10 @@
         <div id="connectionStatus" class="status disconnected">Disconnected</div>
     </div>
 
-    <!-- Include the PatchWorld Bridge API -->
-    <script src="patchworld-bridge.js?v=1.0"></script>
+    <!-- Include the PatchWorld Bridge API dynamically with timestamp to prevent caching -->
+    <script>
+        document.write('<script src="patchworld-bridge.js?t=' + Date.now() + '"><\/script>');
+    </script>
 
     <script>
         // Set up Lifecycle Hooks

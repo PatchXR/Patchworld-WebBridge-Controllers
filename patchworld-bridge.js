@@ -5,7 +5,7 @@
 
 console.log("patchworld-bridge v1.0");
 
-window.PatchWorld = {
+window.PatchWorld = Object.assign(window.PatchWorld || {}, {
     /**
      * Stores the latest context data received from Unity.
      * @type {{
@@ -318,7 +318,7 @@ window.PatchWorld = {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();
     }
-};
+});
 
 // Global shorthands for convenience
 window.sendToPatchWorld = window.PatchWorld.sendToPatchWorld.bind(window.PatchWorld);
