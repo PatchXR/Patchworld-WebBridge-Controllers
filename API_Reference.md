@@ -110,6 +110,8 @@ async function slowMotion() {
 - **`GetWorldID`** : Returns the current World's ID.
 - **`GetUserID`** : Returns the local Player's ID.
 - **`GetBlockInfo <blockFullID>`** : Returns a JSON string with `IDName`, `DisplayName`, `AssetId`, `AssetUrl`, `AssetPath`, and `AssetUrlOrPath`.
+- **`GetSerialization <blockFullID>`** : Returns the serialization string (state) of the target block. If the block is a SubPatch (Group), it returns the ShortSerialize version.
+- **`SetSerialization <blockFullID> <partialSerializationData>`** : Applies partial or full state restore (deserialization) to the target block and synchronizes it across multiplayer.
 
 ---
 

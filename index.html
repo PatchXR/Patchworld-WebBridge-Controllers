@@ -166,6 +166,7 @@
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
             <button id="btnPlaceInFront" disabled style="background-color: #8e44ad;">Place 40cm in front of Head</button>
             <button id="btnGetInfo" disabled style="background-color: #16a085;">Get Info</button>
+            <button id="btnGetSerialization" disabled style="background-color: #f39c12;">Get Serialization</button>
         </div>
         <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; background: #1a1a2e; padding: 10px; border-radius: 5px;">
             <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #c0392b;" id="targetStatusDot"></div>
@@ -199,6 +200,13 @@
             <button id="btnSetQuat" disabled style="background-color: #2980b9;">Set Quat</button>
             <button id="btnGetScale" disabled style="background-color: #3498db;">Get Scale</button>
             <button id="btnSetScale" disabled style="background-color: #2980b9;">Set Scale</button>
+        </div>
+        
+        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            <h3 style="font-size: 14px; margin-bottom: 10px; color: #f39c12;">Apply Serialization</h3>
+            <p style="font-size: 11px; color: #aaa; margin-bottom: 10px;">Warning: This applies partial or full serialization string to the block plugged into <strong>Parts In</strong>.</p>
+            <textarea id="tPartialSerialization" disabled placeholder="Type or paste partial serialization data here..." style="width: 100%; height: 60px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; font-size: 11px; padding: 5px; background: #111; color: #ddd; border: 1px solid #333; resize: vertical;"></textarea>
+            <button id="btnSetSerialization" disabled style="background-color: #e67e22; width: 100%;">Set Serialization (to Connected Part)</button>
         </div>
 
         <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
@@ -638,6 +646,36 @@
                 } else {
                     resultDiv.innerText = `GetBlockInfo Result: ${response}`;
                 }
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        document.getElementById('btnGetSerialization').addEventListener('click', async () => {
+            const target = document.getElementById('tTarget').value;
+            if (!target) {
+                document.getElementById('result').innerText = "Error: No block connected to Parts In.";
+                return;
+            }
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Fetching Serialization...`;
+            try {
+                const response = await runCommand("GetSerialization", target);
+                resultDiv.innerText = `Serialization:\n${response}`;
+                document.getElementById('tPartialSerialization').value = response;
+            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        document.getElementById('btnSetSerialization').addEventListener('click', async () => {
+            const target = document.getElementById('tTarget').value;
+            if (!target) {
+                document.getElementById('result').innerText = "Error: No block connected to Parts In.";
+                return;
+            }
+            const partialSer = document.getElementById('tPartialSerialization').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = `Applying Serialization...`;
+            try {
+                const response = await runCommand("SetSerialization", target, partialSer);
+                resultDiv.innerText = `SetSerialization Result: ${response}`;
             } catch (error) { resultDiv.innerText = `Error: ${error}`; }
         });
 
