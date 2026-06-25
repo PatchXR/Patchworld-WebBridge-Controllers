@@ -223,6 +223,29 @@ PatchWorld.onVariableRemoved = (varName, fullID, partID) => { ... }
 - **`FetchValue <key>`** : Retrieves a numeric value from the server. Returns the number as a string, `"ERROR_Not_Found"`, or `"ERROR_Budget_Exceeded_Try_Later"`.
   > *Note:* These API calls consume the global online variable budget (max 10 operations per 10 seconds).
 
+### ☁️ REST API (Server Queries & Thumbnails)
+PatchWorld WebView runs with full network access. `PatchWorld` exports `API_URL` (`https://api.patchxr.io`) and async helper methods to query public server data directly from JavaScript:
+
+- **`PatchWorld.API_URL`**: Base endpoint constant (`"https://api.patchxr.io"`).
+- **`fetchAsset(assetId)`**: Returns metadata for a public library asset (e.g. `file`, `thumbUrl`, `category`).
+- **`fetchUserProfile(userId)`**: Returns public player profile information (e.g. `username`, `avatar`, `bio`).
+- **`fetchUserAssetLibrary(userId)`**: Returns the list of public devices/instruments published by a player.
+
+#### Example Routes & Usage:
+```javascript
+// 1. Fetch thumbnail of a library asset
+const asset = await fetchAsset("64f1a2b3c...");
+console.log("Thumbnail URL:", asset.thumbUrl);
+
+// 2. Fetch avatar thumbnail of a player
+const profile = await fetchUserProfile("user_12345");
+console.log("Player Avatar URL:", profile.avatar || profile.Avatar);
+
+// 3. Fetch public asset list of a player
+const library = await fetchUserAssetLibrary("user_12345");
+console.log(`Player published ${library.length} public assets`);
+```
+
 ---
 
 ## 💡 Advanced Examples

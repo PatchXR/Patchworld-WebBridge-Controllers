@@ -257,6 +257,15 @@
 
         <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
 
+        <h2 style="font-size: 16px; margin-bottom: 10px;">HTTP GET (Server API)</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="assetIdInput" placeholder="Asset ID (e.g. 64f1...)" disabled style="margin-bottom: 0;">
+            <button id="showThumbBtn" disabled style="background-color: #9b59b6;">Show Thumbnail</button>
+        </div>
+        <div id="thumbContainer" style="text-align: center; margin-bottom: 15px;"></div>
+
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+
         <h2 style="font-size: 16px; margin-bottom: 10px;">Players</h2>
         <div id="playerList" style="font-size: 14px; text-align: left; background: #0f3460; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
             <em>No players connected.</em>
@@ -310,6 +319,8 @@
             document.getElementById('postValBtn').disabled = false;
             document.getElementById('fetchStrBtn').disabled = false;
             document.getElementById('fetchValBtn').disabled = false;
+            document.getElementById('assetIdInput').disabled = false;
+            document.getElementById('showThumbBtn').disabled = false;
             document.getElementById('copyBlockBtn').disabled = false;
             document.getElementById('removeDelay').disabled = false;
             document.getElementById('removeBlockBtn').disabled = false;
@@ -665,6 +676,32 @@
                 const response = await runCommand("FetchValue", key);
                 resultDiv.innerText = `FetchValue Result: ${response}`;
             } catch (error) { resultDiv.innerText = `Error: ${error}`; }
+        });
+
+        // HTTP GET Thumbnail
+        document.getElementById('showThumbBtn').addEventListener('click', async () => {
+            const assetId = document.getElementById('assetIdInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            const container = document.getElementById('thumbContainer');
+            
+            if (!assetId) return;
+            
+            resultDiv.innerText = `Fetching metadata for asset ${assetId}...`;
+            container.innerHTML = '';
+            
+            try {
+                const data = await PatchWorld.fetchAsset(assetId);
+                
+                const thumbUrl = data.thumbUrl || data.url;
+                if (thumbUrl) {
+                    resultDiv.innerText = `Loaded thumbnail for "${data.file || assetId}"`;
+                    container.innerHTML = `<img src="${thumbUrl}" style="max-width: 100%; max-height: 180px; border-radius: 8px; border: 2px solid #9b59b6; margin-top: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">`;
+                } else {
+                    resultDiv.innerText = `Asset found, but no thumbnail URL attached.`;
+                }
+            } catch (err) {
+                resultDiv.innerText = `GET Error: ${err.message}`;
+            }
         });
 
         // Copy Block Button

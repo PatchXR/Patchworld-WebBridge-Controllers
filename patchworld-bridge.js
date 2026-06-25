@@ -250,6 +250,44 @@ window.PatchWorld = {
         }
         window.vuplex.postMessage({ type: "pxr.bridge.wifi", action: "subscribe", channel: channel });
         return Promise.resolve();
+    },
+
+    /**
+     * PatchWorld REST API Configuration & Helpers
+     */
+    API_URL: "https://api.patchxr.io",
+
+    /**
+     * Fetches metadata for a specific library asset (block, device, patch).
+     * @param {string} assetId - The unique ID of the asset.
+     * @returns {Promise<any>}
+     */
+    fetchAsset: async function(assetId) {
+        const res = await fetch(`${this.API_URL}/assets/${assetId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+    },
+
+    /**
+     * Fetches the public profile information of a PatchWorld player (username, bio, avatar).
+     * @param {string} userId - The unique ID of the player.
+     * @returns {Promise<any>}
+     */
+    fetchUserProfile: async function(userId) {
+        const res = await fetch(`${this.API_URL}/user/${userId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+    },
+
+    /**
+     * Fetches the public asset library (devices, instruments) published by a specific player.
+     * @param {string} userId - The unique ID of the player.
+     * @returns {Promise<any>}
+     */
+    fetchUserAssetLibrary: async function(userId) {
+        const res = await fetch(`${this.API_URL}/assets/user-library/${userId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
     }
 };
 
@@ -257,6 +295,9 @@ window.PatchWorld = {
 window.sendToPatchWorld = window.PatchWorld.sendToPatchWorld.bind(window.PatchWorld);
 window.runCommand = window.PatchWorld.runCommand.bind(window.PatchWorld);
 window.GetParentDevice = window.PatchWorld.GetParentDevice.bind(window.PatchWorld);
+window.fetchAsset = window.PatchWorld.fetchAsset.bind(window.PatchWorld);
+window.fetchUserProfile = window.PatchWorld.fetchUserProfile.bind(window.PatchWorld);
+window.fetchUserAssetLibrary = window.PatchWorld.fetchUserAssetLibrary.bind(window.PatchWorld);
 
 // ==========================================
 // Handshake & Lifecycle Management
