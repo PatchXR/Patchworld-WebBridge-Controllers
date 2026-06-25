@@ -188,6 +188,23 @@ If you only want to change one axis, pass the magic number `PatchWorld.UNCHANGED
   - `restrictionPathID`: (Optional) Provide the PathID of a specific block/subpatch to restrict the broadcast to that block only. Use `""` for no restriction.
   - Example: `SendWirelessJolt 1.0 "trigger" 0 ""`
 
+### 🔢 Variable System
+PatchWorld's Variable System allows you to attach numeric values to blocks dynamically at runtime. The WebBridge provides an advanced **Subscription and Local Cache API** to read variables instantly without stuttering the framerate.
+- **`subscribeVariable(varName)`**: Asks the engine to push updates for `varName`. Once subscribed, the local cache is populated.
+- **`getVariable(varName, targetFullID, [partID])`**: **Synchronous.** Returns the value from the local cache. Returns `null` if not found or not subscribed.
+- **`getAllWithVariable(varName)`**: **Synchronous.** Returns an array of `{fullId, partId, value}` from the local cache.
+- **`setVariable(varName, targetFullID, value, [partID])`**: Asynchronous. Sets the variable on a specific block.
+- **`removeVariable(varName, targetFullID, [partID])`**: Asynchronous. Removes the variable from a block.
+
+#### Variable System Callbacks
+You can override these hooks in JS to react to variable changes instantly:
+```javascript
+PatchWorld.onVariableSync = (varName, initialCacheArray) => { ... }
+PatchWorld.onVariableAdded = (varName, fullID, partID, value) => { ... }
+PatchWorld.onVariableChanged = (varName, fullID, partID, value) => { ... }
+PatchWorld.onVariableRemoved = (varName, fullID, partID) => { ... }
+```
+
 ### 🌐 Online Variables
 - **`PostString <key> <value>`** : Saves a string to the PatchXR server at the specified key. Returns `"SUCCESS"` or `"ERROR_Budget_Exceeded_Try_Later"`.
 - **`PostValue <key> <value>`** : Saves a numeric value (float/double) to the server at the specified key. Returns `"SUCCESS"` or `"ERROR_Budget_Exceeded_Try_Later"`.

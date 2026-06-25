@@ -146,6 +146,49 @@ window.PatchWorld = {
     },
 
     /**
+     * Variable System Cache
+     * Format: { "VarName": [ { fullId: "...", partId: 0, value: 42.0 } ] }
+     */
+    variablesCache: {},
+
+    // Variable System Lifecycle hooks
+    onVariableAdded: null,
+    onVariableChanged: null,
+    onVariableRemoved: null,
+    onVariableSync: null,
+
+    /**
+     * Variable System API
+     */
+    subscribeVariable: async function(varName) {
+        if (!this.variablesCache[varName]) {
+            this.variablesCache[varName] = [];
+        }
+        if (!window.vuplex) return Promise.reject("Vuplex not available");
+        window.vuplex.postMessage({ type: "pxr.bridge.var", action: "subscribe", varName: varName });
+        return Promise.resolve();
+    },
+
+    setVariable: async function(varName, target, value, partID = 0) {
+        return this.runCommand("setvariable", varName, target, value, partID);
+    },
+
+    removeVariable: async function(varName, target, partID = 0) {
+        return this.runCommand("removevariable", varName, target, partID);
+    },
+
+    getVariable: function(varName, target, partID = 0) {
+        if (!this.variablesCache[varName]) return null;
+        const entry = this.variablesCache[varName].find(e => e.fullId === target && e.partId === partID);
+        return entry ? entry.value : null;
+    },
+
+    getAllWithVariable: function(varName) {
+        if (!this.variablesCache[varName]) return [];
+        return [...this.variablesCache[varName]];
+    },
+
+    /**
      * Interface IO Methods
      * These require the bridge to be active (context.bridgeId must exist).
      */
@@ -244,9 +287,51 @@ function setupBridgeListeners() {
                 window.PatchWorld.context = null;
                 window.PatchWorld.players = {};
                 window.PatchWorld.LocalPlayer = null;
+                window.PatchWorld.variablesCache = {};
 
                 if (typeof window.PatchWorld.onDisconnected === 'function') {
                     window.PatchWorld.onDisconnected();
+                }
+            }
+            else if (message.type === "pxr.bridge.var") {
+                const action = message.action;
+                const varName = message.varName;
+                const data = message.data;
+
+                if (!window.PatchWorld.variablesCache[varName]) {
+                    window.PatchWorld.variablesCache[varName] = [];
+                }
+
+                const cache = window.PatchWorld.variablesCache[varName];
+
+                if (action === "sync") {
+                    window.PatchWorld.variablesCache[varName] = data || [];
+                    if (typeof window.PatchWorld.onVariableSync === 'function') {
+                        window.PatchWorld.onVariableSync(varName, window.PatchWorld.variablesCache[varName]);
+                    }
+                } 
+                else if (action === "added" || action === "changed") {
+                    const idx = cache.findIndex(e => e.fullId === data.fullId && e.partId === data.partId);
+                    if (idx >= 0) {
+                        cache[idx] = data;
+                    } else {
+                        cache.push(data);
+                    }
+
+                    if (action === "added" && typeof window.PatchWorld.onVariableAdded === 'function') {
+                        window.PatchWorld.onVariableAdded(varName, data.fullId, data.partId, data.value);
+                    } else if (action === "changed" && typeof window.PatchWorld.onVariableChanged === 'function') {
+                        window.PatchWorld.onVariableChanged(varName, data.fullId, data.partId, data.value);
+                    }
+                } 
+                else if (action === "removed") {
+                    const idx = cache.findIndex(e => e.fullId === data.fullId && e.partId === data.partId);
+                    if (idx >= 0) {
+                        cache.splice(idx, 1);
+                    }
+                    if (typeof window.PatchWorld.onVariableRemoved === 'function') {
+                        window.PatchWorld.onVariableRemoved(varName, data.fullId, data.partId);
+                    }
                 }
             }
         } catch (e) {

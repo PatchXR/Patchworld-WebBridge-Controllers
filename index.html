@@ -211,6 +211,27 @@
         </div>
 
         <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
+
+        <h2 style="font-size: 16px; margin-bottom: 10px;">Variable System</h2>
+        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="sysVarName" placeholder="Var Name (e.g. Score)" disabled style="margin-bottom: 0;">
+                <button id="btnSubscribeVar" disabled style="background-color: #8e44ad;">Subscribe</button>
+            </div>
+            
+            <div id="sysVarList" style="font-size: 11px; font-family: monospace; text-align: left; background: #1a1a2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; max-height: 150px; overflow-y: auto;">
+                <em>No active subscription.</em>
+            </div>
+
+            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                <input type="number" id="sysVarValue" placeholder="Value" value="1" disabled style="margin-bottom: 0; width: 80px;">
+                <button id="btnSetSysVar" disabled style="background-color: #2980b9;">Set on Target</button>
+                <button id="btnRemoveSysVar" disabled style="background-color: #c0392b;">Remove on Target</button>
+            </div>
+            <button id="btnGetAllSysVar" disabled style="background-color: #f39c12; width: 100%;">Console.log AllWith (Local Cache)</button>
+        </div>
+        
+        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
         
         <h2 style="font-size: 16px; margin-bottom: 10px;">Online Variables</h2>
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -268,6 +289,12 @@
             document.getElementById('joltChannel').disabled = false;
             document.getElementById('joltValue').disabled = false;
             document.getElementById('sendJoltBtn').disabled = false;
+            document.getElementById('sysVarName').disabled = false;
+            document.getElementById('btnSubscribeVar').disabled = false;
+            document.getElementById('sysVarValue').disabled = false;
+            document.getElementById('btnSetSysVar').disabled = false;
+            document.getElementById('btnRemoveSysVar').disabled = false;
+            document.getElementById('btnGetAllSysVar').disabled = false;
             document.getElementById('varKey').disabled = false;
             document.getElementById('varValue').disabled = false;
             document.getElementById('postStrBtn').disabled = false;
@@ -509,6 +536,64 @@
             } catch (error) {
                 resultDiv.innerText = `Error: ${error}`;
             }
+        });
+
+        // Variable System Buttons
+        const sysVarNameInput = document.getElementById('sysVarName');
+        const sysVarValueInput = document.getElementById('sysVarValue');
+        const sysVarList = document.getElementById('sysVarList');
+
+        function updateSysVarList(varName, list) {
+            if (!list || list.length === 0) {
+                sysVarList.innerHTML = "<em>Empty cache.</em>";
+                return;
+            }
+            sysVarList.innerHTML = list.map(e => `<div>${e.fullId}[${e.partId}] = ${e.value}</div>`).join('');
+        }
+
+        PatchWorld.onVariableSync = (varName, cache) => {
+            if (varName === sysVarNameInput.value) updateSysVarList(varName, cache);
+        };
+        PatchWorld.onVariableAdded = (varName) => {
+            if (varName === sysVarNameInput.value) updateSysVarList(varName, PatchWorld.getAllWithVariable(varName));
+        };
+        PatchWorld.onVariableChanged = (varName) => {
+            if (varName === sysVarNameInput.value) updateSysVarList(varName, PatchWorld.getAllWithVariable(varName));
+        };
+        PatchWorld.onVariableRemoved = (varName) => {
+            if (varName === sysVarNameInput.value) updateSysVarList(varName, PatchWorld.getAllWithVariable(varName));
+        };
+
+        document.getElementById('btnSubscribeVar').addEventListener('click', async () => {
+            const varName = sysVarNameInput.value;
+            if (!varName) return;
+            sysVarList.innerHTML = "<em>Subscribing...</em>";
+            await PatchWorld.subscribeVariable(varName);
+        });
+
+        document.getElementById('btnSetSysVar').addEventListener('click', async () => {
+            const varName = sysVarNameInput.value;
+            const val = parseFloat(sysVarValueInput.value) || 0;
+            const target = document.getElementById('tTarget').value;
+            const partId = parseInt(document.getElementById('tPart').value) || 0;
+            if (!varName || !target) return;
+            await PatchWorld.setVariable(varName, target, val, partId);
+        });
+
+        document.getElementById('btnRemoveSysVar').addEventListener('click', async () => {
+            const varName = sysVarNameInput.value;
+            const target = document.getElementById('tTarget').value;
+            const partId = parseInt(document.getElementById('tPart').value) || 0;
+            if (!varName || !target) return;
+            await PatchWorld.removeVariable(varName, target, partId);
+        });
+
+        document.getElementById('btnGetAllSysVar').addEventListener('click', () => {
+            const varName = sysVarNameInput.value;
+            if (!varName) return;
+            const list = PatchWorld.getAllWithVariable(varName);
+            console.log(`GetAllWithVariable("${varName}"):`, list);
+            document.getElementById('result').innerText = `Logged ${list.length} entries for "${varName}" to console`;
         });
 
         // Online Variables Buttons
