@@ -3,893 +3,1406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PatchWorld WebBridge Test</title>
+    <title>PatchWorld // Universal Controller Hub</title>
+    <!-- Include official PatchWorld WebBridge SDK -->
+    <script src="patchworld-bridge.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-base: #0b0f19;
+            --bg-panel: rgba(19, 27, 46, 0.65);
+            --bg-card: rgba(30, 41, 69, 0.5);
+            --bg-input: rgba(11, 15, 25, 0.8);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(16, 185, 129, 0.3);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            --accent-emerald: #10b981;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #a855f7;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            
+            --font-ui: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* Strict Viewport Flexbox Constraint */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1a2e;
-            color: #e0e0e0;
+            font-family: var(--font-ui);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.04), transparent 35%),
+                radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.05), transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(168, 85, 247, 0.04), transparent 40%);
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Top Header - Fixed at Top */
+        header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(11, 15, 25, 0.95);
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: #000;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-amber);
+            box-shadow: 0 0 8px var(--accent-amber);
+            transition: all 0.3s ease;
+        }
+
+        .status-pill.connected .status-dot {
+            background-color: var(--accent-emerald);
+            box-shadow: 0 0 8px var(--accent-emerald);
+        }
+
+        .btn-mute-all {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-mute-all:hover {
+            background: var(--accent-red);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-mute-all.active {
+            background: var(--accent-red);
+            color: #fff;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+            50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.9); }
+        }
+
+        /* Main App Layout - Flex 1 with min-height: 0 constraint */
+        .app-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            overflow: hidden;
+            padding: 16px 20px 10px 20px;
+            gap: 20px;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 210px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            color: var(--text-muted);
+            font-family: var(--font-ui);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-panel);
+            border-color: var(--border-color);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn.active.tab-overview { border-left: 3px solid #fff; }
+        .nav-btn.active.tab-midi { border-left: 3px solid var(--accent-cyan); }
+        .nav-btn.active.tab-gamepad { border-left: 3px solid var(--accent-purple); }
+        .nav-btn.active.tab-hid { border-left: 3px solid var(--accent-amber); }
+        .nav-btn.active.tab-keyboard { border-left: 3px solid var(--accent-emerald); }
+
+        .badge-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+        }
+
+        /* Main Workspace Content Area */
+        .workspace {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Scrollable container for control lists */
+        .scrollable-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Scrollbar aesthetics */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        /* Section Headings */
+        .section-header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Dashboard Overview Grid */
+        .stats-grid {
+            flex-shrink: 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .stat-value.emerald { color: var(--accent-emerald); }
+        .stat-value.cyan { color: var(--accent-cyan); }
+        .stat-value.purple { color: var(--accent-purple); }
+
+        /* Controller Device Cards */
+        .device-card {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .device-card.active-input {
+            border-color: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
+        }
+
+        .device-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 10px;
+        }
+
+        .device-name {
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .device-type-badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .badge-midi { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3); }
+        .badge-gamepad { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); border: 1px solid rgba(168, 85, 247, 0.3); }
+        .badge-hid { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        /* Controls Assignment List */
+        .controls-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: minmax(130px, 170px) 1fr minmax(240px, 310px) 44px 34px;
+            align-items: center;
+            gap: 12px;
+            background: rgba(10, 14, 25, 0.7);
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .control-row:hover {
+            border-color: rgba(255,255,255,0.15);
+            background: rgba(15, 21, 38, 0.85);
+        }
+
+        .control-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+
+        .control-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #f1f5f9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .control-subtitle {
+            font-size: 10px;
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+        }
+
+        /* Live VU Meter Bar */
+        .vu-meter-container {
+            height: 16px;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .vu-meter-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan));
+            transition: width 0.04s linear;
+        }
+
+        .vu-meter-val {
+            position: absolute;
+            right: 6px;
+            font-size: 10px;
+            font-family: var(--font-mono);
+            color: #fff;
+            text-shadow: 0 0 4px #000;
+            font-weight: 700;
+        }
+
+        /* Jolt Channel Routing Input */
+        .channel-input-group {
+            display: flex;
+            align-items: center;
+            background: rgba(5, 8, 15, 0.9);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 6px;
+            padding: 0 8px;
+        }
+
+        .channel-input-group:focus-within {
+            border-color: var(--accent-emerald);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .channel-prefix {
+            font-size: 11px;
+            color: var(--accent-emerald);
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .channel-input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 6px 4px;
+            width: 100%;
+            outline: none;
+        }
+
+        /* Action Buttons & Toggles */
+        .btn-test {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: var(--accent-emerald);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-test:hover {
+            background: var(--accent-emerald);
+            color: #000;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.12);
+            transition: .3s;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #fff;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--accent-emerald);
+            border-color: var(--accent-emerald);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+            background-color: #000;
+        }
+
+        /* Gamepad Slider Settings - Pinned at Top of Tab */
+        .settings-panel {
+            flex-shrink: 0;
+            padding: 14px 18px;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            background: rgba(20, 28, 48, 0.85);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .slider-label span:last-child {
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        /* High Visibility Bright Slider Tracks */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 4px;
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            border: 2px solid #fff;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
+        }
+
+        /* Virtual Keyboard Pad Matrix */
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+
+        .keypad-btn {
+            background: rgba(30, 41, 69, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px 0;
-            overflow-y: auto;
-        }
-        .container {
-            background-color: #16213e;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            width: 80%;
-            max-width: 400px;
-            border: 1px solid #0f3460;
-        }
-        h1 {
-            margin-top: 0;
-            color: #e94560;
-            font-size: 24px;
-        }
-        h2 {
-            color: #4a90e2;
-            font-size: 18px;
-            margin-top: -10px;
-            margin-bottom: 20px;
-            font-weight: normal;
-        }
-        input {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #0f3460;
-            border-radius: 6px;
-            background-color: #0f3460;
-            color: white;
-            font-size: 16px;
-        }
-        button {
-            background-color: #e94560;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            justify-content: center;
+            gap: 4px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background-color 0.2s;
-            width: 100%;
+            transition: all 0.15s;
         }
-        button:hover {
-            background-color: #d13d56;
+
+        .keypad-btn:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--accent-emerald);
         }
-        button:active {
-            transform: scale(0.98);
+
+        .keypad-btn:active, .keypad-btn.pressed {
+            background: var(--accent-emerald);
+            color: #000;
+            transform: scale(0.96);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
         }
-        #result {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #888;
-            min-height: 20px;
+
+        .keypad-key { font-size: 18px; font-weight: 700; font-family: var(--font-mono); }
+        .keypad-chan { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+        .keypad-btn:active .keypad-chan, .keypad-btn.pressed .keypad-chan { color: rgba(0,0,0,0.7); }
+
+        /* Bottom Packet Monitor & Console - Pinned at Bottom */
+        .monitor-panel {
+            flex-shrink: 0;
+            height: 130px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px 16px;
+            margin: 0 20px 16px 20px;
+            background: rgba(7, 10, 18, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
         }
-        .status {
-            font-size: 12px;
-            margin-top: 15px;
-            padding: 5px;
+
+        .monitor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .btn-mini {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 2px 8px;
             border-radius: 4px;
-            background-color: #000;
+            font-size: 10px;
+            cursor: pointer;
         }
-        .status.connected { color: #4CAF50; }
-        .status.disconnected { color: #f44336; }
+
+        .btn-mini:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+        .console-logs {
+            flex: 1;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-right: 4px;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .log-time { color: var(--text-dim); }
+        .log-dir { font-weight: 700; }
+        .log-dir.out { color: var(--accent-emerald); }
+        .log-dir.in { color: var(--accent-cyan); }
+        .log-dir.sys { color: var(--accent-amber); }
+        .log-chan { color: #e2e8f0; font-weight: 600; }
+        .log-val { color: var(--accent-purple); }
+
+        .alert-banner {
+            flex-shrink: 0;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fde68a;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>PatchWorld UI</h1>
-        <h2 id="welcomeText">Waiting for connection...</h2>
-        
-        <input type="text" id="toasterInput" placeholder="Enter message..." value="Hello from UI!" disabled>
-        <button id="sendBtn" disabled>Send Toaster Message</button>
-        
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
 
-        <h2 style="font-size: 16px; margin-bottom: 10px;">Physical IO</h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; background: #1a1a2e; padding: 15px; border-radius: 5px;">
-            <!-- Left Column: Inputs -->
-            <div>
-                <h3 style="font-size: 14px; margin-bottom: 10px; color: #4CAF50;">📥 Inputs (From PatchWorld)</h3>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size: 12px; color: #aaa;">Text In (onInterfaceMessageIn)</label>
-                    <div id="dispMessageIn" style="background: #111; padding: 5px; font-size: 12px; min-height: 20px; border: 1px solid #333;">-</div>
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size: 12px; color: #aaa;">Parts In (Connected Target)</label>
-                    <div id="dispTargetIn" style="background: #111; padding: 5px; font-size: 12px; min-height: 20px; border: 1px solid #333;">-</div>
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size: 12px; color: #aaa;">Jolt In (Last Value)</label>
-                    <div id="dispJoltIn" style="background: #111; padding: 5px; font-size: 12px; min-height: 20px; border: 1px solid #333;">-</div>
-                </div>
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <div class="brand-logo">PXR</div>
+            <div class="brand-title">CONTROLLER HUB</div>
+        </div>
+        
+        <div class="header-controls">
+            <div id="bridgeStatusPill" class="status-pill">
+                <div class="status-dot"></div>
+                <span id="bridgeStatusText">Connecting Unity...</span>
             </div>
             
-            <!-- Right Column: Outputs -->
-            <div>
-                <h3 style="font-size: 14px; margin-bottom: 10px; color: #e74c3c;">📤 Outputs (To PatchWorld)</h3>
-                
-                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <input type="text" id="outTextVal" placeholder="Message out..." disabled style="margin-bottom: 0;">
-                    <button id="btnOutText" disabled style="background-color: #e67e22; padding: 5px;">Send Text</button>
-                </div>
-                
-                <div style="margin-bottom: 10px;">
-                    <button id="btnOutAddLocalPlayer" disabled style="background-color: #8e44ad; width: 100%; padding: 5px;">Add LocalPlayer to Parts Out</button>
-                </div>
-                
-                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <input type="number" id="outJoltVal" placeholder="Value" value="1" step="0.1" disabled style="margin-bottom: 0; width: 80px;">
-                    <button id="btnOutJoltA" disabled style="background-color: #c0392b; padding: 5px; flex-grow: 1;">Send Jolt A</button>
-                    <button id="btnOutJoltB" disabled style="background-color: #e74c3c; padding: 5px; flex-grow: 1;">Send Jolt B</button>
-                </div>
+            <div class="status-pill" style="font-family: var(--font-mono);">
+                <span style="color: var(--text-muted);">WORLD:</span>
+                <span id="dispWorldId">LOCAL_SIM</span>
             </div>
+
+            <button id="btnGlobalMute" class="btn-mute-all">
+                <span>🔴 MUTE ALL JOLTS</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Body -->
+    <div class="app-body">
+        
+        <!-- Navigation Sidebar -->
+        <div class="sidebar glass-panel" style="padding: 10px;">
+            <button class="nav-btn tab-overview active" onclick="Hub.switchTab('overview')">
+                <span>🌐 Overview</span>
+            </button>
+            <button class="nav-btn tab-midi" onclick="Hub.switchTab('midi')">
+                <span>🎹 MIDI Devices</span>
+                <span id="badgeMidi" class="badge-count">0</span>
+            </button>
+            <button class="nav-btn tab-gamepad" onclick="Hub.switchTab('gamepad')">
+                <span>🎮 Gamepads</span>
+                <span id="badgeGamepad" class="badge-count">0</span>
+            </button>
+            <button class="nav-btn tab-hid" onclick="Hub.switchTab('hid')">
+                <span>🔌 HID & Serial</span>
+            </button>
+            <button class="nav-btn tab-keyboard" onclick="Hub.switchTab('keyboard')">
+                <span>⌨️ Virtual Keypad</span>
+            </button>
         </div>
 
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
-        
-        <h2 style="font-size: 16px; margin-bottom: 10px;">Wireless Jolts</h2>
-        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <input type="text" id="wifiChanInput" placeholder="Channel (e.g. trigger)" disabled style="margin-bottom: 0;">
-                <button id="btnSubscribeWifi" disabled style="background-color: #16a085;">Subscribe</button>
-            </div>
-            <div id="wifiLogList" style="font-size: 11px; font-family: monospace; text-align: left; background: #1a1a2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; max-height: 100px; overflow-y: auto;">
-                <em>No wifi jolts received yet.</em>
-            </div>
-            <div style="display: flex; gap: 5px;">
-                <input type="number" id="wifiSendVal" placeholder="Value" value="1" disabled style="margin-bottom: 0; width: 80px;">
-                <button id="btnSendWifi" disabled style="background-color: #27ae60; width: 100%;">Send Wireless Jolt</button>
-            </div>
-        </div>
-        
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
-        
-        <h2 style="font-size: 16px; margin-bottom: 10px;">Blocks & Scene</h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-            <button id="copyBlockBtn" disabled style="background-color: #8e44ad;">Copy Target Block</button>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <button id="removeBlockBtn" disabled style="background-color: #c0392b; width: 100%;">Remove Target Block</button>
-                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 5px;">
-                    <label style="font-size: 12px; color: #aaa;">Delay (sec):</label>
-                    <input type="number" id="removeDelay" placeholder="0" value="0" disabled style="margin-bottom: 0; width: 60px; padding: 2px 5px;">
-                </div>
-            </div>
-        </div>
-
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
-        
-        <h2 style="font-size: 16px; margin-bottom: 10px;">Transforms</h2>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button id="btnPlaceInFront" disabled style="background-color: #8e44ad;">Place 40cm in front of Head</button>
-            <button id="btnGetInfo" disabled style="background-color: #16a085;">Get Info</button>
-            <button id="btnGetSerialization" disabled style="background-color: #f39c12;">Get Serialization</button>
-        </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; background: #1a1a2e; padding: 10px; border-radius: 5px;">
-            <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #c0392b;" id="targetStatusDot"></div>
-            <span id="targetStatusText" style="font-weight: bold; color: #aaa;">Target: None (connect a block to the bridge)</span>
-            <input type="hidden" id="tTarget" value="">
-            <input type="hidden" id="tPart" value="-1">
-        </div>
-        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-            <input type="text" id="tSpace" placeholder="Space fullID (opt)" value="" disabled style="margin-bottom: 0;">
-            <input type="number" id="tSpacePart" placeholder="Space PartID" value="" disabled style="margin-bottom: 0; width: 100px;">
-        </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-            <button id="btnSetVisible" disabled style="background-color: #2980b9; padding: 5px 10px;">Set Visible</button>
-            <button id="btnSetHidden" disabled style="background-color: #34495e; padding: 5px 10px;">Set Hidden</button>
-            <div style="width: 1px; height: 20px; background-color: #555;"></div>
-            <button id="btnSetLocked" disabled style="background-color: #c0392b; padding: 5px 10px;">Lock</button>
-            <button id="btnSetUnlocked" disabled style="background-color: #27ae60; padding: 5px 10px;">Unlock</button>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px;">
-            <input type="text" id="tX" placeholder="x" value="" disabled style="margin-bottom: 0;">
-            <input type="text" id="tY" placeholder="y" value="" disabled style="margin-bottom: 0;">
-            <input type="text" id="tZ" placeholder="z" value="" disabled style="margin-bottom: 0;">
-            <input type="text" id="tW" placeholder="w (quat)" value="" disabled style="margin-bottom: 0;">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-            <button id="btnGetPos" disabled style="background-color: #3498db;">Get Pos</button>
-            <button id="btnSetPos" disabled style="background-color: #2980b9;">Set Pos</button>
-            <button id="btnGetRot" disabled style="background-color: #3498db;">Get Rot (Euler)</button>
-            <button id="btnSetRot" disabled style="background-color: #2980b9;">Set Rot (Euler)</button>
-            <button id="btnGetQuat" disabled style="background-color: #3498db;">Get Quat</button>
-            <button id="btnSetQuat" disabled style="background-color: #2980b9;">Set Quat</button>
-            <button id="btnGetScale" disabled style="background-color: #3498db;">Get Scale</button>
-            <button id="btnSetScale" disabled style="background-color: #2980b9;">Set Scale</button>
-        </div>
-        
-        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-            <h3 style="font-size: 14px; margin-bottom: 10px; color: #f39c12;">Apply Serialization</h3>
-            <p style="font-size: 11px; color: #aaa; margin-bottom: 10px;">Warning: This applies partial or full serialization string to the block plugged into <strong>Parts In</strong>.</p>
-            <textarea id="tPartialSerialization" disabled placeholder="Type or paste partial serialization data here..." style="width: 100%; height: 60px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; font-size: 11px; padding: 5px; background: #111; color: #ddd; border: 1px solid #333; resize: vertical;"></textarea>
-            <button id="btnSetSerialization" disabled style="background-color: #e67e22; width: 100%;">Set Serialization (to Connected Part)</button>
-        </div>
-
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
-
-        <h2 style="font-size: 16px; margin-bottom: 10px;">Variable System</h2>
-        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <input type="text" id="sysVarName" placeholder="Var Name (e.g. Score)" disabled style="margin-bottom: 0;">
-                <button id="btnSubscribeVar" disabled style="background-color: #8e44ad;">Subscribe</button>
-            </div>
+        <!-- Main Workspace Area -->
+        <div class="workspace">
             
-            <div id="sysVarList" style="font-size: 11px; font-family: monospace; text-align: left; background: #1a1a2e; padding: 10px; border-radius: 6px; margin-bottom: 10px; max-height: 150px; overflow-y: auto;">
-                <em>No active subscription.</em>
+            <!-- TAB 1: OVERVIEW -->
+            <div id="tabOverview" class="tab-content active">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">🌐 Central Hardware Bridge Dashboard</h2>
+                        <p class="section-desc">Route physical hardware movements seamlessly into Patchworld VR Jolts.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <span class="stat-label">Active Hardware</span>
+                        <span id="statActiveCount" class="stat-value emerald">0</span>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <span class="stat-label">Jolt Broadcast Rate</span>
+                        <span id="statJoltRate" class="stat-value cyan">0 /sec</span>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <span class="stat-label">Network Status</span>
+                        <span id="statNetMode" class="stat-value purple">READY</span>
+                    </div>
+                </div>
+
+                <div class="scrollable-list">
+                    <div class="glass-panel" style="padding: 18px;">
+                        <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--accent-emerald);">🚀 Quick Start Guide</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px;">
+                            1. Plug in your USB MIDI keyboard, Xbox Gamepad, or Quest Touch controller.<br>
+                            2. Select your device tab on the left to inspect live controls.<br>
+                            3. Customize the <code>send//</code> channel string for any fader, trigger, or button.<br>
+                            4. Inside Patchworld VR, spawn a <code>Receive Jolt</code> block and type the matching channel name!
+                        </p>
+                        <button class="btn-test" style="padding: 8px 16px;" onclick="Hub.testBroadcast('test_pulse', 1.0)">
+                            ⚡ Fire Test Pulse Jolt ("test_pulse" = 1.0)
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                <input type="number" id="sysVarValue" placeholder="Value" value="1" disabled style="margin-bottom: 0; width: 80px;">
-                <button id="btnSetSysVar" disabled style="background-color: #2980b9;">Set on Target</button>
-                <button id="btnRemoveSysVar" disabled style="background-color: #c0392b;">Remove on Target</button>
+            <!-- TAB 2: MIDI DEVICES -->
+            <div id="tabMidi" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">🎹 Web MIDI I/O Matrix</h2>
+                        <p class="section-desc">Supports USB MIDI keyboards, modular synths, and OS-paired Bluetooth MIDI.</p>
+                    </div>
+                </div>
+
+                <div id="midiAlertContainer"></div>
+
+                <div id="midiDevicesContainer" class="scrollable-list">
+                    <div class="glass-panel" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                        Listening for MIDI hardware connection... Turn any knob or press a key to populate.
+                    </div>
+                </div>
             </div>
-            <button id="btnGetAllSysVar" disabled style="background-color: #f39c12; width: 100%;">Console.log AllWith (Local Cache)</button>
-        </div>
-        
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
-        
-        <h2 style="font-size: 16px; margin-bottom: 10px;">Online Variables</h2>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="text" id="varKey" placeholder="Variable Key" value="my_var" disabled style="margin-bottom: 0;">
-            <input type="number" id="varValue" placeholder="Value" value="10" disabled style="margin-bottom: 0;">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-            <button id="postStrBtn" disabled style="background-color: #4CAF50;">Post String</button>
-            <button id="postValBtn" disabled style="background-color: #4CAF50;">Post Value</button>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-            <button id="fetchStrBtn" disabled style="background-color: #FF9800;">Fetch String</button>
-            <button id="fetchValBtn" disabled style="background-color: #FF9800;">Fetch Value</button>
+
+            <!-- TAB 3: GAMEPADS -->
+            <div id="tabGamepad" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">🎮 VR & Gamepad Controller Matrix</h2>
+                        <p class="section-desc">Real-time dynamic axis and button inspection with deadzone filters and haptic feedback.</p>
+                    </div>
+                </div>
+
+                <!-- High Visibility Slider Settings - Pinned at Top -->
+                <div class="settings-panel">
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Joystick Deadzone Filter</span>
+                            <span id="dispDeadzone">0.08</span>
+                        </div>
+                        <input type="range" id="sliderDeadzone" min="0" max="0.3" step="0.01" value="0.08" oninput="Hub.updateSettings()">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Min Delta Broadcast Threshold</span>
+                            <span id="dispDelta">0.01</span>
+                        </div>
+                        <input type="range" id="sliderDelta" min="0.001" max="0.05" step="0.001" value="0.01" oninput="Hub.updateSettings()">
+                    </div>
+                </div>
+
+                <div id="gamepadDevicesContainer" class="scrollable-list">
+                    <div class="glass-panel" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                        Press any button or move a joystick on your Xbox / Quest controller to activate...
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: HID & SERIAL -->
+            <div id="tabHid" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">🔌 Web HID & Serial Hardware Inspector</h2>
+                        <p class="section-desc">Raw USB packet inspection for custom DIY microcontrollers and Arduino.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="flex-shrink: 0; padding: 16px; display: flex; gap: 14px; align-items: center;">
+                    <button class="btn-test" style="background: rgba(245, 158, 11, 0.2); border-color: var(--accent-amber); color: var(--accent-amber); padding: 8px 14px;" onclick="Hub.requestHID()">
+                        ➕ Connect Raw Web HID Device
+                    </button>
+                    <button class="btn-test" style="background: rgba(6, 182, 212, 0.2); border-color: var(--accent-cyan); color: var(--accent-cyan); padding: 8px 14px;" onclick="Hub.requestSerial()">
+                        ➕ Connect Web Serial Port (Arduino)
+                    </button>
+                    <span style="font-size: 11px; color: var(--text-muted);">*Click to authorize USB devices.</span>
+                </div>
+
+                <div id="hidDevicesContainer" class="scrollable-list">
+                    <div class="glass-panel" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                        No manual HID / Serial devices connected yet.
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: VIRTUAL KEYBOARD -->
+            <div id="tabKeyboard" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">⌨️ Virtual Trigger Matrix</h2>
+                        <p class="section-desc">Click pads or press PC keyboard keys to broadcast instant Jolts.</p>
+                    </div>
+                </div>
+
+                <div class="scrollable-list">
+                    <div class="keypad-grid glass-panel" style="padding: 20px;">
+                        <!-- Dynamically generated keys -->
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
-
-        <h2 style="font-size: 16px; margin-bottom: 10px;">HTTP GET (Server API)</h2>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="text" id="assetIdInput" placeholder="Asset ID (e.g. 64f1...)" disabled style="margin-bottom: 0;">
-            <button id="showThumbBtn" disabled style="background-color: #9b59b6;">Show Thumbnail</button>
-        </div>
-        <div id="thumbContainer" style="text-align: center; margin-bottom: 15px;"></div>
-
-        <hr style="border: 1px solid #0f3460; width: 100%; margin: 20px 0;">
-
-        <h2 style="font-size: 16px; margin-bottom: 10px;">Players</h2>
-        <div id="playerList" style="font-size: 14px; text-align: left; background: #0f3460; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
-            <em>No players connected.</em>
-        </div>
-
-        <div id="result" style="margin-bottom: 15px;"></div>
-        <div id="connectionStatus" class="status disconnected">Disconnected</div>
     </div>
 
-    <!-- Include the PatchWorld Bridge API dynamically with timestamp to prevent caching -->
-    <script>
-        document.write('<script src="patchworld-bridge.js?t=' + Date.now() + '"><\/script>');
-    </script>
-
-    <script>
-        // Set up Lifecycle Hooks
-        
-        PatchWorld.onBeforeData = function() {
-            // Called right before receiving new context data.
-            // Good place to clear caches or reset UI if the bridge reconnected.
-            document.getElementById('result').innerText = "Connecting...";
-        };
-
-        PatchWorld.onData = function(context) {
-            console.log("patchworld-bridge v1.0");
-            console.log("Initializing UI with context data...");
-            // Called when connection is established and data is received
-            document.getElementById('connectionStatus').innerText = "Connected to " + (context.worldId || "World");
-            document.getElementById('connectionStatus').className = "status connected";
-            
-            // Personalize UI
-            if (context.username) {
-                document.getElementById('welcomeText').innerText = "Welcome, " + context.username + "!";
-            } else {
-                document.getElementById('welcomeText').innerText = "Welcome, Player!";
-            }
-
-            // Enable inputs
-            document.getElementById('toasterInput').disabled = false;
-            document.getElementById('sendBtn').disabled = false;
-            document.getElementById('sysVarName').disabled = false;
-            document.getElementById('btnSubscribeVar').disabled = false;
-            document.getElementById('sysVarValue').disabled = false;
-            document.getElementById('btnSetSysVar').disabled = false;
-            document.getElementById('btnRemoveSysVar').disabled = false;
-            document.getElementById('btnGetAllSysVar').disabled = false;
-            document.getElementById('wifiChanInput').disabled = false;
-            document.getElementById('btnSubscribeWifi').disabled = false;
-            document.getElementById('wifiSendVal').disabled = false;
-            document.getElementById('btnSendWifi').disabled = false;
-            document.getElementById('varKey').disabled = false;
-            document.getElementById('varValue').disabled = false;
-            document.getElementById('postStrBtn').disabled = false;
-            document.getElementById('postValBtn').disabled = false;
-            document.getElementById('fetchStrBtn').disabled = false;
-            document.getElementById('fetchValBtn').disabled = false;
-            document.getElementById('assetIdInput').disabled = false;
-            document.getElementById('showThumbBtn').disabled = false;
-            document.getElementById('copyBlockBtn').disabled = false;
-            document.getElementById('removeDelay').disabled = false;
-            document.getElementById('removeBlockBtn').disabled = false;
-            document.getElementById('btnPlaceInFront').disabled = false;
-            document.getElementById('btnGetInfo').disabled = false;
-            document.getElementById('btnSetVisible').disabled = false;
-            document.getElementById('btnSetHidden').disabled = false;
-            document.getElementById('btnSetLocked').disabled = false;
-            document.getElementById('btnSetUnlocked').disabled = false;
-            
-            // Serialization UI
-            document.getElementById('btnGetSerialization').disabled = false;
-            document.getElementById('btnSetSerialization').disabled = false;
-            document.getElementById('tPartialSerialization').disabled = false;
-            
-            // IO UI
-            document.getElementById('outTextVal').disabled = false;
-            document.getElementById('btnOutText').disabled = false;
-            document.getElementById('btnOutAddLocalPlayer').disabled = false;
-            document.getElementById('outJoltVal').disabled = false;
-            document.getElementById('btnOutJoltA').disabled = false;
-            document.getElementById('btnOutJoltB').disabled = false;
-            
-            const transformInputs = ['tTarget', 'tPart', 'tSpace', 'tSpacePart', 'tX', 'tY', 'tZ', 'tW', 
-                'btnGetPos', 'btnSetPos', 'btnGetRot', 'btnSetRot', 'btnGetQuat', 'btnSetQuat', 'btnGetScale', 'btnSetScale'];
-            transformInputs.forEach(id => document.getElementById(id).disabled = false);
-            
-            renderPlayerList();
-        };
-
-        PatchWorld.onWorldReady = function() {
-            document.getElementById('connectionStatus').innerText = "Connected (World & MP Ready)";
-            document.getElementById('result').innerText = "World is loaded & multiplayer sync complete!";
-        };
-
-        PatchWorld.onDisconnected = function() {
-            // Called when the cable is unplugged in PatchWorld
-            document.getElementById('connectionStatus').innerText = "Disconnected";
-            document.getElementById('connectionStatus').className = "status disconnected";
-            document.getElementById('welcomeText').innerText = "Waiting for connection...";
-            
-            // Disable inputs
-            document.getElementById('toasterInput').disabled = true;
-            document.getElementById('sendBtn').disabled = true;
-            document.getElementById('joltChannel').disabled = true;
-            document.getElementById('joltValue').disabled = true;
-            document.getElementById('sendJoltBtn').disabled = true;
-            document.getElementById('wifiChanInput').disabled = true;
-            document.getElementById('btnSubscribeWifi').disabled = true;
-            document.getElementById('wifiSendVal').disabled = true;
-            document.getElementById('btnSendWifi').disabled = true;
-            document.getElementById('varKey').disabled = true;
-            document.getElementById('varValue').disabled = true;
-            document.getElementById('postStrBtn').disabled = true;
-            document.getElementById('postValBtn').disabled = true;
-            document.getElementById('fetchStrBtn').disabled = true;
-            document.getElementById('fetchValBtn').disabled = true;
-            document.getElementById('copyBlockBtn').disabled = true;
-            document.getElementById('removeDelay').disabled = true;
-            document.getElementById('removeBlockBtn').disabled = true;
-            document.getElementById('btnPlaceInFront').disabled = true;
-            document.getElementById('btnGetInfo').disabled = true;
-            document.getElementById('btnSetVisible').disabled = true;
-            document.getElementById('btnSetHidden').disabled = true;
-            document.getElementById('btnSetLocked').disabled = true;
-            document.getElementById('btnSetUnlocked').disabled = true;
-
-            // Serialization UI
-            document.getElementById('btnGetSerialization').disabled = true;
-            document.getElementById('btnSetSerialization').disabled = true;
-            document.getElementById('tPartialSerialization').disabled = true;
-
-            // IO UI
-            document.getElementById('outTextVal').disabled = true;
-            document.getElementById('btnOutText').disabled = true;
-            document.getElementById('btnOutAddLocalPlayer').disabled = true;
-            document.getElementById('outJoltVal').disabled = true;
-            document.getElementById('btnOutJoltA').disabled = true;
-            document.getElementById('btnOutJoltB').disabled = true;
-
-            const transformInputs = ['tSpace', 'tSpacePart', 'tX', 'tY', 'tZ', 'tW', 
-                'btnGetPos', 'btnSetPos', 'btnGetRot', 'btnSetRot', 'btnGetQuat', 'btnSetQuat', 'btnGetScale', 'btnSetScale'];
-            transformInputs.forEach(id => document.getElementById(id).disabled = true);
-            
-            renderPlayerList();
-            renderPlayerList();
-        };
-
-        PatchWorld.onInterfaceInputPartConnected = async function(data) {
-            document.getElementById('tTarget').value = data.fullId;
-            document.getElementById('tPart').value = data.partId;
-            document.getElementById('targetStatusDot').style.backgroundColor = '#27ae60';
-            
-            try {
-                // Try to get block info to show its name
-                const result = await runCommand("GetBlockInfo", data.fullId);
-                const info = JSON.parse(result);
-                document.getElementById('targetStatusText').innerText = `Target: ${info.DisplayName || info.IDName} (Part: ${data.partId})`;
-                document.getElementById('dispTargetIn').innerText = `${info.DisplayName || info.IDName} (Part: ${data.partId})`;
-            } catch (e) {
-                document.getElementById('targetStatusText').innerText = `Target: ${data.fullId} (Part: ${data.partId})`;
-                document.getElementById('dispTargetIn').innerText = `${data.fullId} (Part: ${data.partId})`;
-            }
-        };
-
-        PatchWorld.onInterfaceInputPartDisconnected = function(data) {
-            // Only disconnect if it's the current target (though usually there's only 1 target via selector)
-            if (document.getElementById('tTarget').value === data.fullId && 
-                parseInt(document.getElementById('tPart').value) === data.partId) {
-                document.getElementById('tTarget').value = "";
-                document.getElementById('tPart').value = "-1";
-                document.getElementById('targetStatusDot').style.backgroundColor = '#c0392b';
-                document.getElementById('targetStatusText').innerText = "Target: None (connect a block to the bridge)";
-                document.getElementById('dispTargetIn').innerText = "-";
-            }
-        };
-
-        PatchWorld.onInterfaceMessageIn = function(txt) {
-            document.getElementById('dispMessageIn').innerText = txt;
-        };
-
-        PatchWorld.onInterfaceInputJoltA = function(value) {
-            document.getElementById('dispJoltIn').innerText = `${value} (Jolt A)`;
-        };
-        PatchWorld.onInterfaceInputJoltB = function(value) {
-            document.getElementById('dispJoltIn').innerText = `${value} (Jolt B)`;
-        };
-
-        document.getElementById('btnOutText').addEventListener('click', async () => {
-            const txt = document.getElementById('outTextVal').value;
-            try { await PatchWorld.interfaceMessageOut(txt); } 
-            catch (error) { document.getElementById('result').innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('btnOutAddLocalPlayer').addEventListener('click', async () => {
-            if (PatchWorld.LocalPlayer) {
-                try { await PatchWorld.interfaceAddPartRef(PatchWorld.LocalPlayer.playerRef, -1); }
-                catch (error) { document.getElementById('result').innerText = `Error: ${error}`; }
-            } else {
-                document.getElementById('result').innerText = `Error: LocalPlayer not found in context.`;
-            }
-        });
-
-        document.getElementById('btnOutJoltA').addEventListener('click', async () => {
-            const val = parseFloat(document.getElementById('outJoltVal').value) || 0;
-            try { await PatchWorld.interfaceSendJoltA(val); }
-            catch (error) { document.getElementById('result').innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('btnOutJoltB').addEventListener('click', async () => {
-            const val = parseFloat(document.getElementById('outJoltVal').value) || 0;
-            try { await PatchWorld.interfaceSendJoltB(val); }
-            catch (error) { document.getElementById('result').innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('btnSetVisible').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            const part = document.getElementById('tPart').value === "" ? -1 : parseInt(document.getElementById('tPart').value);
-            const resultDiv = document.getElementById('result');
-            try { resultDiv.innerText = await runCommand("SetBlockVisible", target, true, part); } 
-            catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-        document.getElementById('btnSetHidden').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            const part = document.getElementById('tPart').value === "" ? -1 : parseInt(document.getElementById('tPart').value);
-            const resultDiv = document.getElementById('result');
-            try { resultDiv.innerText = await runCommand("SetBlockVisible", target, false, part); } 
-            catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-        document.getElementById('btnSetLocked').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            const resultDiv = document.getElementById('result');
-            try { resultDiv.innerText = await runCommand("SetBlockLocked", target, true); } 
-            catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-        document.getElementById('btnSetUnlocked').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            const resultDiv = document.getElementById('result');
-            try { resultDiv.innerText = await runCommand("SetBlockLocked", target, false); } 
-            catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        function renderPlayerList() {
-            const listDiv = document.getElementById('playerList');
-            const players = Object.values(PatchWorld.players || {});
-            if (players.length === 0) {
-                listDiv.innerHTML = "<em>No players connected.</em>";
-                return;
-            }
-            let html = "<ul style='margin:0; padding-left:20px;'>";
-            players.forEach(p => {
-                const isMaster = p.playerId === PatchWorld.masterId;
-                const badges = [];
-                if (p.isLocal) badges.push("<b>(Local)</b>");
-                if (isMaster) badges.push("<span style='color: #f1c40f;'>👑 Master</span>");
-                
-                const badgeStr = badges.length > 0 ? ` ${badges.join(" ")}` : "";
-                
-                html += `<li>${p.playerName}${badgeStr} - <code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px;">${p.playerRef}</code></li>`;
-            });
-            html += "</ul>";
-            listDiv.innerHTML = html;
-        }
-
-        PatchWorld.onPlayerConnect = function(p) {
-            renderPlayerList();
-        };
-
-        PatchWorld.onPlayerDisconnect = function(p) {
-            renderPlayerList();
-        };
-        
-        PatchWorld.onMasterChanged = function(masterId) {
-            renderPlayerList();
-        };
-
-        // Button action
-        document.getElementById('sendBtn').addEventListener('click', async () => {
-            const inputVal = document.getElementById('toasterInput').value;
-            const resultDiv = document.getElementById('result');
-            
-            resultDiv.innerText = "Sending command...";
-            
-            try {
-                // Call the ToasterMessage command using the shortcut with separate arguments
-                const response = await runCommand("ToasterMessage", inputVal);
-                resultDiv.innerText = `Success: ${response}`;
-            } catch (error) {
-                resultDiv.innerText = `Error: ${error}`;
-            }
-        });
-
-        // Variable System Buttons
-        const sysVarNameInput = document.getElementById('sysVarName');
-        const sysVarValueInput = document.getElementById('sysVarValue');
-        const sysVarList = document.getElementById('sysVarList');
-
-        function updateSysVarList(varName, list) {
-            if (!list || list.length === 0) {
-                sysVarList.innerHTML = "<em>Empty cache.</em>";
-                return;
-            }
-            sysVarList.innerHTML = list.map(e => `<div>${e.fullId}[${e.partId}] = ${e.value}</div>`).join('');
-        }
-
-        PatchWorld.onVariableSync = (varName, cache) => {
-            if (varName === sysVarNameInput.value) updateSysVarList(varName, cache);
-        };
-        PatchWorld.onVariableAdded = (varName) => {
-            if (varName === sysVarNameInput.value) updateSysVarList(varName, PatchWorld.getAllWithVariable(varName));
-        };
-        PatchWorld.onVariableChanged = (varName) => {
-            if (varName === sysVarNameInput.value) updateSysVarList(varName, PatchWorld.getAllWithVariable(varName));
-        };
-        PatchWorld.onVariableRemoved = (varName) => {
-            if (varName === sysVarNameInput.value) updateSysVarList(varName, PatchWorld.getAllWithVariable(varName));
-        };
-
-        document.getElementById('btnSubscribeVar').addEventListener('click', async () => {
-            const varName = sysVarNameInput.value;
-            if (!varName) return;
-            sysVarList.innerHTML = "<em>Subscribing...</em>";
-            await PatchWorld.subscribeVariable(varName);
-        });
-
-        document.getElementById('btnSetSysVar').addEventListener('click', async () => {
-            const varName = sysVarNameInput.value;
-            const val = parseFloat(sysVarValueInput.value) || 0;
-            const target = document.getElementById('tTarget').value;
-            const partId = parseInt(document.getElementById('tPart').value) || 0;
-            if (!varName || !target) return;
-            await PatchWorld.setVariable(varName, target, val, partId);
-        });
-
-        document.getElementById('btnRemoveSysVar').addEventListener('click', async () => {
-            const varName = sysVarNameInput.value;
-            const target = document.getElementById('tTarget').value;
-            const partId = parseInt(document.getElementById('tPart').value) || 0;
-            if (!varName || !target) return;
-            await PatchWorld.removeVariable(varName, target, partId);
-        });
-
-        document.getElementById('btnGetAllSysVar').addEventListener('click', () => {
-            const varName = sysVarNameInput.value;
-            if (!varName) return;
-            const list = PatchWorld.getAllWithVariable(varName);
-            console.log(`GetAllWithVariable("${varName}"):`, JSON.stringify(list));
-            document.getElementById('result').innerText = `Logged ${list.length} entries for "${varName}" to console`;
-        });
-
-        // Wifi Jolts Handlers
-        PatchWorld.onWifiJolt = function(chan, val) {
-            const listDiv = document.getElementById('wifiLogList');
-            if (listDiv.querySelector('em')) listDiv.innerHTML = '';
-            const entry = document.createElement('div');
-            entry.innerText = `[${new Date().toLocaleTimeString()}] Channel "${chan}": ${val}`;
-            listDiv.prepend(entry);
-        };
-
-        document.getElementById('btnSubscribeWifi').addEventListener('click', async () => {
-            const chan = document.getElementById('wifiChanInput').value;
-            if (!chan) return;
-            await PatchWorld.subscribeWifi(chan);
-            document.getElementById('result').innerText = `Subscribed to wifi channel "${chan}"`;
-        });
-
-        document.getElementById('btnSendWifi').addEventListener('click', async () => {
-            const chan = document.getElementById('wifiChanInput').value;
-            const val = parseFloat(document.getElementById('wifiSendVal').value) || 0;
-            if (!chan) return;
-            await PatchWorld.sendWirelessJolt(chan, val);
-            document.getElementById('result').innerText = `Sent wireless jolt ${val} to "${chan}"`;
-        });
-
-        // Online Variables Buttons
-        const varKeyInput = document.getElementById('varKey');
-        const varValueInput = document.getElementById('varValue');
-
-        document.getElementById('postStrBtn').addEventListener('click', async () => {
-            const key = varKeyInput.value;
-            const val = varValueInput.value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Posting string...`;
-            try {
-                const response = await runCommand("PostString", key, val);
-                resultDiv.innerText = `PostString Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('postValBtn').addEventListener('click', async () => {
-            const key = varKeyInput.value;
-            const val = parseFloat(varValueInput.value) || 0;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Posting value...`;
-            try {
-                const response = await runCommand("PostValue", key, val);
-                resultDiv.innerText = `PostValue Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('fetchStrBtn').addEventListener('click', async () => {
-            const key = varKeyInput.value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Fetching string...`;
-            try {
-                const response = await runCommand("FetchString", key);
-                resultDiv.innerText = `FetchString Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('fetchValBtn').addEventListener('click', async () => {
-            const key = varKeyInput.value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Fetching value...`;
-            try {
-                const response = await runCommand("FetchValue", key);
-                resultDiv.innerText = `FetchValue Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        // HTTP GET Thumbnail
-        document.getElementById('showThumbBtn').addEventListener('click', async () => {
-            const assetId = document.getElementById('assetIdInput').value.trim();
-            const resultDiv = document.getElementById('result');
-            const container = document.getElementById('thumbContainer');
-            
-            if (!assetId) return;
-            
-            resultDiv.innerText = `Fetching metadata for asset ${assetId}...`;
-            container.innerHTML = '';
-            
-            try {
-                const data = await PatchWorld.fetchAsset(assetId);
-                
-                const thumbUrl = data.thumbUrl || data.url;
-                if (thumbUrl) {
-                    resultDiv.innerText = `Loaded thumbnail for "${data.file || assetId}"`;
-                    container.innerHTML = `<img src="${thumbUrl}" style="max-width: 100%; max-height: 180px; border-radius: 8px; border: 2px solid #9b59b6; margin-top: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">`;
-                } else {
-                    resultDiv.innerText = `Asset found, but no thumbnail URL attached.`;
-                }
-            } catch (err) {
-                resultDiv.innerText = `GET Error: ${err.message}`;
-            }
-        });
-
-        // Copy Block Button
-        document.getElementById('copyBlockBtn').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            if (!target) return;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Copying block...`;
-            try {
-                // Get the parent group dynamically
-                const parentId = PatchWorld.GetParentDevice(target);
-                const response = await runCommand("CopyBlock", target, parentId);
-                resultDiv.innerText = `CopyBlock Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        const removeDelayInput = document.getElementById('removeDelay');
-        document.getElementById('removeBlockBtn').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            if (!target) return;
-            const delay = parseFloat(removeDelayInput.value) || 0;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Removing block...`;
-            try {
-                const response = await runCommand("RemoveBlock", target, delay);
-                resultDiv.innerText = `RemoveBlock Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        // Transforms Buttons
-        function parseT(val) {
-            if (val === "UNCHANGED" || val.trim() === "") return PatchWorld.UNCHANGED;
-            let p = parseFloat(val);
-            return isNaN(p) ? PatchWorld.UNCHANGED : p;
-        }
-
-        function getCommonArgs() {
-            return [
-                document.getElementById('tTarget').value,
-                parseInt(document.getElementById('tPart').value) || 0,
-                document.getElementById('tSpace').value,
-                parseInt(document.getElementById('tSpacePart').value) || 0
-            ];
-        }
-
-        async function doTransformCommand(cmdName, isSet, useQuat) {
-            const args = getCommonArgs(); // target, part, space, spacePart
-            const x = parseT(document.getElementById('tX').value);
-            const y = parseT(document.getElementById('tY').value);
-            const z = parseT(document.getElementById('tZ').value);
-            const w = parseT(document.getElementById('tW').value);
-
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `${cmdName}...`;
-
-            try {
-                let callArgs;
-                if (isSet) {
-                    if (useQuat) {
-                        callArgs = [cmdName, args[0], x, y, z, w, args[1], args[2], args[3]];
-                    } else if (cmdName === "SetBlockScale") {
-                        callArgs = [cmdName, args[0], x, y, z, args[1]]; // Scale doesn't use Space
-                    } else {
-                        callArgs = [cmdName, args[0], x, y, z, args[1], args[2], args[3]];
-                    }
-                } else {
-                    if (cmdName === "GetBlockScale") {
-                        callArgs = [cmdName, args[0], args[1]]; // Scale doesn't use Space
-                    } else {
-                        callArgs = [cmdName, args[0], args[1], args[2], args[3]];
-                    }
-                }
-
-                const response = await runCommand(...callArgs);
-                resultDiv.innerText = `${cmdName} Result: ${response}`;
-                
-                // If it's a GET command, populate the inputs
-                if (!isSet && response.startsWith("{")) {
-                    const parsed = JSON.parse(response);
-                    document.getElementById('tX').value = parsed.x !== undefined ? parsed.x : "";
-                    document.getElementById('tY').value = parsed.y !== undefined ? parsed.y : "";
-                    document.getElementById('tZ').value = parsed.z !== undefined ? parsed.z : "";
-                    if (useQuat) document.getElementById('tW').value = parsed.w !== undefined ? parsed.w : "";
-                }
-            } catch (error) { 
-                resultDiv.innerText = `Error: ${error}`; 
-            }
-        }
-
-        document.getElementById('btnGetPos').addEventListener('click', () => doTransformCommand("GetBlockPosition", false, false));
-        document.getElementById('btnSetPos').addEventListener('click', () => doTransformCommand("SetBlockPosition", true, false));
-        
-        document.getElementById('btnGetRot').addEventListener('click', () => doTransformCommand("GetBlockRotation", false, false));
-        document.getElementById('btnSetRot').addEventListener('click', () => doTransformCommand("SetBlockRotation", true, false));
-
-        document.getElementById('btnGetQuat').addEventListener('click', () => doTransformCommand("GetBlockQuaternion", false, true));
-        document.getElementById('btnSetQuat').addEventListener('click', () => doTransformCommand("SetBlockQuaternion", true, true));
-
-        document.getElementById('btnGetScale').addEventListener('click', () => doTransformCommand("GetBlockScale", false, false));
-        document.getElementById('btnSetScale').addEventListener('click', () => doTransformCommand("SetBlockScale", true, false));
-
-        document.getElementById('btnGetInfo').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Fetching Block Info...`;
-            try {
-                const response = await runCommand("GetBlockInfo", target);
-                if (response.startsWith("{")) {
-                    const parsed = JSON.parse(response);
-                    // Format JSON nicely in the result div
-                    resultDiv.innerHTML = `<pre style="text-align: left; margin: 0; white-space: pre-wrap; word-break: break-all;">${JSON.stringify(parsed, null, 2)}</pre>`;
-                } else {
-                    resultDiv.innerText = `GetBlockInfo Result: ${response}`;
-                }
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('btnGetSerialization').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            if (!target) {
-                document.getElementById('result').innerText = "Error: No block connected to Parts In.";
-                return;
-            }
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Fetching Serialization...`;
-            try {
-                const response = await runCommand("GetSerialization", target);
-                resultDiv.innerText = `Serialization:\n${response}`;
-                document.getElementById('tPartialSerialization').value = response;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('btnSetSerialization').addEventListener('click', async () => {
-            const target = document.getElementById('tTarget').value;
-            if (!target) {
-                document.getElementById('result').innerText = "Error: No block connected to Parts In.";
-                return;
-            }
-            const partialSer = document.getElementById('tPartialSerialization').value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Applying Serialization...`;
-            try {
-                const response = await runCommand("SetSerialization", target, partialSer);
-                resultDiv.innerText = `SetSerialization Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-
-        document.getElementById('btnPlaceInFront').addEventListener('click', async () => {
-            if (!PatchWorld.LocalPlayer) {
-                document.getElementById('result').innerText = "Error: LocalPlayer not found. Are we connected?";
-                return;
-            }
-            const target = document.getElementById('tTarget').value;
-            const part = parseInt(document.getElementById('tPart').value) || 0;
-            
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerText = `Placing in front of head...`;
-            try {
-                const response = await runCommand("SetBlockPosition", target, 0, 0, 0.4, part, PatchWorld.LocalPlayer.playerRef, PatchWorld.PlayerBodyPart.Head);
-                resultDiv.innerText = `PlaceInFront Result: ${response}`;
-            } catch (error) { resultDiv.innerText = `Error: ${error}`; }
-        });
-        
-        // Debug Counters
-        let blocksSpawnedCount = 0;
-        let blocksRemovedCount = 0;
-        
-        PatchWorld.onBlockSpawned = function(data) {
-            console.log(`Block spawned: ${data.name} (${data.fullId})`);
-            blocksSpawnedCount++;
-            document.getElementById('spawnedCount').innerText = blocksSpawnedCount;
-        };
-
-        PatchWorld.onBlockRemoved = function(data) {
-            blocksRemovedCount++;
-            document.getElementById('removedCount').innerText = blocksRemovedCount;
-        };
-    </script>
-    
-    <div style="margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #333; padding-top: 10px;">
-        <div>Total block spawned : <span id="spawnedCount">0</span></div>
-        <div>Total block removed : <span id="removedCount">0</span></div>
+    <!-- Bottom Packet Monitor Console - Pinned at Bottom -->
+    <div class="monitor-panel">
+        <div class="monitor-header">
+            <span>📡 LIVE JOLT & PACKET INSPECTOR</span>
+            <div>
+                <button class="btn-mini" onclick="Hub.clearLogs()">CLEAR</button>
+            </div>
+        </div>
+        <div id="consoleLogs" class="console-logs">
+            <div class="log-entry">
+                <span class="log-time">[SYSTEM]</span>
+                <span class="log-dir sys">READY</span>
+                <span class="log-chan">Controller Hub Initialized. Listening for hardware...</span>
+            </div>
+        </div>
     </div>
+
+    <!-- Application Javascript Logic -->
+    <script>
+        class UniversalControllerHub {
+            constructor() {
+                this.isMuted = false;
+                this.isConnectedToBridge = false;
+                
+                this.lastSentTime = {};
+                this.lastSentVal = {};
+                this.joltCountWindow = 0;
+                
+                this.activeMidiInputs = new Map();
+                this.activeGamepads = new Map();
+                this.activeHidDevices = new Map();
+                this.enabledControls = new Map();
+                
+                this.deadzone = 0.08;
+                this.deltaThreshold = 0.01;
+                
+                this.axisNames = ['Left Stick X', 'Left Stick Y', 'Right Stick X', 'Right Stick Y', 'Trigger Left Axis', 'Trigger Right Axis'];
+                this.btnNames = ['A (Cross)', 'B (Circle)', 'X (Square)', 'Y (Triangle)', 'LB (L1)', 'RB (R1)', 'LT Trigger (L2)', 'RT Trigger (R2)', 'Back (Select)', 'Start (Menu)', 'L3 Stick Click', 'R3 Stick Click', 'D-Pad Up', 'D-Pad Down', 'D-Pad Left', 'D-Pad Right', 'Home (Guide)'];
+                
+                this.routings = JSON.parse(localStorage.getItem('patchworld_hub_routings') || '{}');
+
+                this.init();
+            }
+
+            init() {
+                this.initPatchworldHooks();
+                this.initWebMIDI();
+                this.initGamepadPolling();
+                this.initVirtualKeyboard();
+                this.initGlobalControls();
+                
+                setInterval(() => this.updateStatsUI(), 1000);
+            }
+
+            initPatchworldHooks() {
+                const pill = document.getElementById('bridgeStatusPill');
+                const txt = document.getElementById('bridgeStatusText');
+                const worldDisp = document.getElementById('dispWorldId');
+
+                if (window.PatchWorld) {
+                    window.PatchWorld.onData = () => {
+                        this.isConnectedToBridge = true;
+                        pill.classList.add('connected');
+                        txt.innerText = "Unity VR Connected";
+                        if (window.PatchWorld.context) {
+                            worldDisp.innerText = window.PatchWorld.context.worldId || "ROOM_ONLINE";
+                        }
+                        this.log('SYS', 'BRIDGE', 'Handshake established with Patchworld VR engine.');
+                        this.subscribeVRFeedback();
+                    };
+
+                    window.PatchWorld.onDisconnected = () => {
+                        this.isConnectedToBridge = false;
+                        pill.classList.remove('connected');
+                        txt.innerText = "Disconnected";
+                        this.log('SYS', 'BRIDGE', 'Lost connection to Unity VR block.');
+                    };
+                } else {
+                    txt.innerText = "Desktop Simulation Mode";
+                    this.log('SYS', 'SIM', 'Running outside VR. Jolts will be logged locally.');
+                }
+            }
+
+            subscribeVRFeedback() {
+                if (!window.PatchWorld) return;
+                window.PatchWorld.subscribeWifi("rumble", (val) => {
+                    this.log('IN', 'RECV//rumble', `Received rumble pulse (${val})`);
+                    this.triggerGamepadRumble(val);
+                });
+
+                window.PatchWorld.subscribeWifi("midi_led_1", (val) => {
+                    this.log('IN', 'RECV//midi_led_1', `Triggering MIDI Out LED (${val})`);
+                    this.sendMidiOutLED(60, val > 0 ? 127 : 0);
+                });
+            }
+
+            getChannelName(controlKey) {
+                if (this.routings[controlKey]) return this.routings[controlKey];
+                return controlKey.replace(/_/g, '/');
+            }
+
+            setChannelName(controlKey, newChanStr) {
+                this.routings[controlKey] = newChanStr.trim();
+                localStorage.setItem('patchworld_hub_routings', JSON.stringify(this.routings));
+            }
+
+            toggleRouting(controlKey, isEnabled) {
+                this.enabledControls.set(controlKey, isEnabled);
+            }
+
+            broadcastJolt(controlKey, rawValue, sourceName) {
+                if (this.isMuted) return;
+                if (this.enabledControls.get(controlKey) === false) return;
+
+                const chanStr = this.getChannelName(controlKey);
+                const now = performance.now();
+
+                const lastVal = this.lastSentVal[controlKey];
+                if (lastVal !== undefined && Math.abs(rawValue - lastVal) < this.deltaThreshold) return;
+
+                const lastTime = this.lastSentTime[controlKey] || 0;
+                if (now - lastTime < 25) return;
+
+                this.lastSentTime[controlKey] = now;
+                this.lastSentVal[controlKey] = rawValue;
+                this.joltCountWindow++;
+
+                const cleanVal = Math.round(rawValue * 1000) / 1000;
+
+                if (this.isConnectedToBridge && window.PatchWorld && window.PatchWorld.sendWirelessJolt) {
+                    window.PatchWorld.sendWirelessJolt(chanStr, cleanVal);
+                }
+
+                this.updateVUMeterUI(controlKey, cleanVal);
+                this.log('OUT', `SEND//${chanStr}`, `${cleanVal} (${sourceName})`);
+            }
+
+            testBroadcast(customChan, val) {
+                if (this.isConnectedToBridge && window.PatchWorld && window.PatchWorld.sendWirelessJolt) {
+                    window.PatchWorld.sendWirelessJolt(customChan, val);
+                }
+                this.log('OUT', `SEND//${customChan}`, `${val} [MANUAL_TEST]`);
+            }
+
+            ensureDeviceCard(type, devId, title, badgeText) {
+                const containerId = type === 'midi' ? 'midiDevicesContainer' : (type === 'gamepad' ? 'gamepadDevicesContainer' : 'hidDevicesContainer');
+                const container = document.getElementById(containerId);
+
+                if (container.children.length === 1 && (container.children[0].innerText.includes('Listening') || container.children[0].innerText.includes('Press') || container.children[0].innerText.includes('No manual'))) {
+                    container.innerHTML = '';
+                }
+
+                let card = document.getElementById(`card_${devId}`);
+                if (!card) {
+                    const badgeClass = type === 'midi' ? 'badge-midi' : (type === 'gamepad' ? 'badge-gamepad' : 'badge-hid');
+                    card = document.createElement('div');
+                    card.className = 'device-card glass-panel';
+                    card.id = `card_${devId}`;
+                    card.innerHTML = `
+                        <div class="device-header">
+                            <div class="device-name">${title}</div>
+                            <span class="device-type-badge ${badgeClass}">${badgeText || type.toUpperCase()}</span>
+                        </div>
+                        <div id="list_${devId}" class="controls-list"></div>
+                    `;
+                    container.appendChild(card);
+                }
+                return document.getElementById(`list_${devId}`);
+            }
+
+            ensureControlRow(type, devId, devTitle, controlKey, labelName) {
+                const list = this.ensureDeviceCard(type, devId, devTitle);
+                
+                let row = document.getElementById(`row_${controlKey}`);
+                if (!row) {
+                    const chanName = this.getChannelName(controlKey);
+                    row = document.createElement('div');
+                    row.className = 'control-row';
+                    row.id = `row_${controlKey}`;
+                    row.innerHTML = `
+                        <div class="control-info">
+                            <span class="control-title" title="${labelName}">${labelName}</span>
+                            <span class="control-subtitle">${controlKey}</span>
+                        </div>
+                        
+                        <div class="vu-meter-container">
+                            <div id="vubar_${controlKey}" class="vu-meter-bar"></div>
+                            <span id="vuval_${controlKey}" class="vu-meter-val">0.00</span>
+                        </div>
+
+                        <div class="channel-input-group">
+                            <span class="channel-prefix">send//</span>
+                            <input type="text" class="channel-input" value="${chanName}" onchange="Hub.setChannelName('${controlKey}', this.value)">
+                        </div>
+
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="Hub.toggleRouting('${controlKey}', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+
+                        <button class="btn-test" title="Send test jolt 1.0" onclick="Hub.testBroadcast('${chanName}', 1.0)">⚡</button>
+                    `;
+                    list.appendChild(row);
+                }
+            }
+
+            updateVUMeterUI(controlKey, val) {
+                const bar = document.getElementById(`vubar_${controlKey}`);
+                const txt = document.getElementById(`vuval_${controlKey}`);
+
+                if (bar && txt) {
+                    const pct = Math.min(100, Math.max(0, Math.abs(val) * 100));
+                    bar.style.width = `${pct}%`;
+                    txt.innerText = val.toFixed(2);
+                    
+                    const card = bar.closest('.device-card');
+                    if (card) {
+                        card.classList.add('active-input');
+                        clearTimeout(card.glowTimeout);
+                        card.glowTimeout = setTimeout(() => card.classList.remove('active-input'), 180);
+                    }
+                }
+            }
+
+            async initWebMIDI() {
+                const alertContainer = document.getElementById('midiAlertContainer');
+                const midiContainer = document.getElementById('midiDevicesContainer');
+
+                if (!navigator.requestMIDIAccess) {
+                    alertContainer.innerHTML = `<div class="alert-banner">⚠️ Web MIDI API not supported by this browser engine.</div>`;
+                    midiContainer.innerHTML = `<div class="glass-panel" style="padding: 20px; color: var(--text-muted);">Web MIDI Unavailable.</div>`;
+                    return;
+                }
+
+                try {
+                    const midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+                    this.log('SYS', 'MIDI', 'Web MIDI API access granted.');
+
+                    const updateMidiDevices = () => {
+                        midiContainer.innerHTML = '';
+                        this.activeMidiInputs.clear();
+
+                        let count = 0;
+                        for (let input of midiAccess.inputs.values()) {
+                            count++;
+                            this.activeMidiInputs.set(input.id, input);
+                            this.ensureDeviceCard('midi', input.id, `🎹 ${input.name || 'USB MIDI Device'}`, 'MIDI INPUT');
+                            input.onmidimessage = (msg) => this.handleMIDIMessage(input.id, input.name, msg);
+                        }
+
+                        document.getElementById('badgeMidi').innerText = count;
+                        if (count === 0) {
+                            midiContainer.innerHTML = `<div class="glass-panel" style="padding: 30px; text-align: center; color: var(--text-muted);">No MIDI hardware plugged in. Connect a USB or Bluetooth MIDI keyboard.</div>`;
+                        }
+                    };
+
+                    midiAccess.onstatechange = updateMidiDevices;
+                    updateMidiDevices();
+                } catch (err) {
+                    this.log('SYS', 'MIDI_ERR', 'Permission denied for Web MIDI.');
+                    alertContainer.innerHTML = `<div class="alert-banner">⚠️ Web MIDI Permission Denied.</div>`;
+                }
+            }
+
+            handleMIDIMessage(devId, deviceName, msg) {
+                const [status, data1, data2] = msg.data;
+                const cmd = status >> 4;
+
+                if (cmd === 11) {
+                    const normVal = data2 / 127.0;
+                    const controlKey = `midi_${devId}_cc_${data1}`;
+                    this.ensureControlRow('midi', devId, `🎹 ${deviceName}`, controlKey, `CC #${data1}`);
+                    this.broadcastJolt(controlKey, normVal, `${deviceName} CC#${data1}`);
+                } else if (cmd === 9 && data2 > 0) {
+                    const normVel = data2 / 127.0;
+                    const controlKey = `midi_${devId}_note_${data1}`;
+                    this.ensureControlRow('midi', devId, `🎹 ${deviceName}`, controlKey, `Note #${data1}`);
+                    this.broadcastJolt(controlKey, normVel, `${deviceName} Note#${data1}`);
+                } else if (cmd === 8 || (cmd === 9 && data2 === 0)) {
+                    const controlKey = `midi_${devId}_note_${data1}`;
+                    this.ensureControlRow('midi', devId, `🎹 ${deviceName}`, controlKey, `Note #${data1}`);
+                    this.broadcastJolt(controlKey, 0.0, `${deviceName} NoteOff#${data1}`);
+                } else if (cmd === 14) {
+                    const bendVal = ((data2 << 7) | data1) - 8192;
+                    const controlKey = `midi_${devId}_pitchbend`;
+                    this.ensureControlRow('midi', devId, `🎹 ${deviceName}`, controlKey, `Pitch Wheel`);
+                    this.broadcastJolt(controlKey, bendVal / 8192.0, `${deviceName} PitchBend`);
+                }
+            }
+
+            sendMidiOutLED(note, velocity) {
+                if (!navigator.requestMIDIAccess) return;
+                navigator.requestMIDIAccess().then(access => {
+                    for (let output of access.outputs.values()) {
+                        output.send([0x90, note, velocity]);
+                    }
+                });
+            }
+
+            initGamepadPolling() {
+                window.addEventListener('gamepadconnected', (e) => {
+                    this.log('SYS', 'GAMEPAD', `Connected: ${e.gamepad.id}`);
+                });
+
+                const pollLoop = () => {
+                    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+                    const container = document.getElementById('gamepadDevicesContainer');
+
+                    let activeCount = 0;
+                    for (let i = 0; i < gamepads.length; i++) {
+                        const gp = gamepads[i];
+                        if (!gp) continue;
+
+                        activeCount++;
+                        const devId = `gp_${gp.index}`;
+                        const gpTitle = `🎮 ${gp.id}`;
+
+                        if (!this.activeGamepads.has(gp.index)) {
+                            this.activeGamepads.set(gp.index, gp);
+                            this.ensureDeviceCard('gamepad', devId, gpTitle, `GAMEPAD #${gp.index}`);
+                            
+                            for (let a = 0; a < gp.axes.length; a++) {
+                                const cKey = `gamepad_${gp.index}_axis_${a}`;
+                                const name = this.axisNames[a] || `Axis ${a}`;
+                                this.ensureControlRow('gamepad', devId, gpTitle, cKey, `Axis ${a}: ${name}`);
+                            }
+
+                            for (let b = 0; b < gp.buttons.length; b++) {
+                                const cKey = `gamepad_${gp.index}_button_${b}`;
+                                const name = this.btnNames[b] || `Btn ${b}`;
+                                this.ensureControlRow('gamepad', devId, gpTitle, cKey, `Btn ${b}: ${name}`);
+                            }
+                        }
+
+                        for (let a = 0; a < gp.axes.length; a++) {
+                            let val = gp.axes[a];
+                            if (Math.abs(val) < this.deadzone) val = 0.0;
+                            this.broadcastJolt(`gamepad_${gp.index}_axis_${a}`, val, `GP#${gp.index} Axis${a}`);
+                        }
+
+                        for (let b = 0; b < gp.buttons.length; b++) {
+                            const btn = gp.buttons[b];
+                            this.broadcastJolt(`gamepad_${gp.index}_button_${b}`, btn.value || (btn.pressed ? 1.0 : 0.0), `GP#${gp.index} Btn${b}`);
+                        }
+                    }
+
+                    document.getElementById('badgeGamepad').innerText = activeCount;
+                    if (activeCount === 0 && container.children.length <= 1) {
+                        container.innerHTML = `<div class="glass-panel" style="padding: 30px; text-align: center; color: var(--text-muted);">Press any button on your Xbox / Quest controller to activate...</div>`;
+                        this.activeGamepads.clear();
+                    }
+
+                    requestAnimationFrame(pollLoop);
+                };
+
+                requestAnimationFrame(pollLoop);
+            }
+
+            triggerGamepadRumble(intensity) {
+                const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+                for (let gp of gamepads) {
+                    if (gp && gp.vibrationActuator) {
+                        gp.vibrationActuator.playEffect('dual-rumble', {
+                            startDelay: 0, duration: 200, weakMagnitude: intensity, strongMagnitude: intensity
+                        });
+                    }
+                }
+            }
+
+            async requestHID() {
+                if (!navigator.hid) { alert("Web HID API not supported."); return; }
+                try {
+                    const devices = await navigator.hid.requestDevice({ filters: [] });
+                    for (let d of devices) {
+                        await d.open();
+                        const devId = `hid_${d.productId}`;
+                        const devTitle = `🔌 HID: ${d.productName}`;
+                        this.log('SYS', 'HID', `Connected raw HID: ${d.productName}`);
+                        this.ensureControlRow('hid', devId, devTitle, `${devId}_report`, 'Raw Input Report');
+                        d.addEventListener('inputreport', e => {
+                            const bytes = new Uint8Array(e.data.buffer);
+                            this.broadcastJolt(`${devId}_report`, bytes[0] ? bytes[0] / 255.0 : 0.0, `HID ${d.productName}`);
+                        });
+                    }
+                } catch (e) {}
+            }
+
+            async requestSerial() {
+                if (!navigator.serial) { alert("Web Serial API not supported."); return; }
+                try {
+                    const port = await navigator.serial.requestPort();
+                    await port.open({ baudRate: 9600 });
+                    this.log('SYS', 'SERIAL', 'Serial Port opened (9600 baud).');
+                } catch (e) {}
+            }
+
+            initVirtualKeyboard() {
+                const grid = document.querySelector('.keypad-grid');
+                grid.innerHTML = '';
+
+                const keys = [
+                    { k: 'Space', c: 'trigger_space' }, { k: 'Enter', c: 'trigger_enter' },
+                    { k: 'Q', c: 'pad_q' }, { k: 'W', c: 'pad_w' }, { k: 'E', c: 'pad_e' }, { k: 'R', c: 'pad_r' },
+                    { k: 'A', c: 'pad_a' }, { k: 'S', c: 'pad_s' }, { k: 'D', c: 'pad_d' }, { k: 'F', c: 'pad_f' },
+                    { k: '1', c: 'jolt_1' }, { k: '2', c: 'jolt_2' }, { k: '3', c: 'jolt_3' }, { k: '4', c: 'jolt_4' }
+                ];
+
+                keys.forEach(item => {
+                    const btn = document.createElement('div');
+                    btn.className = 'keypad-btn';
+                    btn.id = `key_${item.k}`;
+                    btn.innerHTML = `<span class="keypad-key">${item.k}</span><span class="keypad-chan">${item.c}</span>`;
+                    const fire = (val) => this.broadcastJolt(`keyboard_${item.k}`, val, `Keypad [${item.k}]`);
+                    btn.onmousedown = () => { btn.classList.add('pressed'); fire(1.0); };
+                    btn.onmouseup = () => { btn.classList.remove('pressed'); fire(0.0); };
+                    grid.appendChild(btn);
+                });
+
+                window.addEventListener('keydown', e => {
+                    const key = e.key.toUpperCase() === ' ' ? 'Space' : e.key.toUpperCase();
+                    const dom = document.getElementById(`key_${key}`);
+                    if (dom && !dom.classList.contains('pressed')) {
+                        dom.classList.add('pressed');
+                        this.broadcastJolt(`keyboard_${key}`, 1.0, `PC_Key [${key}]`);
+                    }
+                });
+
+                window.addEventListener('keyup', e => {
+                    const key = e.key.toUpperCase() === ' ' ? 'Space' : e.key.toUpperCase();
+                    const dom = document.getElementById(`key_${key}`);
+                    if (dom) {
+                        dom.classList.remove('pressed');
+                        this.broadcastJolt(`keyboard_${key}`, 0.0, `PC_Key [${key}]`);
+                    }
+                });
+            }
+
+            switchTab(tabId) {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                const matchBtn = document.querySelector(`.tab-${tabId}`);
+                if (matchBtn) matchBtn.classList.add('active');
+
+                const matchTab = document.getElementById(`tab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+                if (matchTab) matchTab.classList.add('active');
+            }
+
+            initGlobalControls() {
+                const muteBtn = document.getElementById('btnGlobalMute');
+                muteBtn.onclick = () => {
+                    this.isMuted = !this.isMuted;
+                    muteBtn.classList.toggle('active', this.isMuted);
+                    muteBtn.innerHTML = this.isMuted ? `<span>🚫 MUTED ALL JOLTS</span>` : `<span>🔴 MUTE ALL JOLTS</span>`;
+                    this.log('SYS', 'MUTE', `Global broadcast is ${this.isMuted ? 'MUTED' : 'ACTIVE'}.`);
+                };
+            }
+
+            updateSettings() {
+                this.deadzone = parseFloat(document.getElementById('sliderDeadzone').value);
+                this.deltaThreshold = parseFloat(document.getElementById('sliderDelta').value);
+                document.getElementById('dispDeadzone').innerText = this.deadzone.toFixed(2);
+                document.getElementById('dispDelta').innerText = this.deltaThreshold.toFixed(3);
+            }
+
+            updateStatsUI() {
+                const totalActive = this.activeMidiInputs.size + this.activeGamepads.size + this.activeHidDevices.size;
+                document.getElementById('statActiveCount').innerText = totalActive;
+                document.getElementById('statJoltRate').innerText = `${this.joltCountWindow} /sec`;
+                this.joltCountWindow = 0;
+            }
+
+            log(dir, chan, msg) {
+                const logs = document.getElementById('consoleLogs');
+                if (!logs) return;
+
+                const timeStr = new Date().toTimeString().split(' ')[0];
+                const dirClass = dir === 'OUT' ? 'out' : (dir === 'IN' ? 'in' : 'sys');
+                const icon = dir === 'OUT' ? '📤' : (dir === 'IN' ? '📥' : '⚙️');
+
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="log-dir ${dirClass}">${icon} ${dir}</span><span class="log-chan">${chan}:</span><span class="log-val">${msg}</span>`;
+
+                logs.appendChild(div);
+                if (logs.children.length > 50) logs.removeChild(logs.children[0]);
+                logs.scrollTop = logs.scrollHeight;
+            }
+
+            clearLogs() {
+                const logs = document.getElementById('consoleLogs');
+                if (logs) logs.innerHTML = '';
+            }
+        }
+
+        window.Hub = new UniversalControllerHub();
+    </script>
 </body>
 </html>
