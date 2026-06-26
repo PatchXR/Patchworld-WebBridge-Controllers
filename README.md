@@ -1,80 +1,70 @@
-# PatchWorld Web Bridge - Example Template
+# PatchWorld // Universal WebBridge Controller Hub
 
-**[👉 See the Live Example Here!](https://patchxr.github.io/Patchworld-WebBridge-Template/)**
+🌐 **Live Web Preview & VR Portal:** [https://patchxr.github.io/Patchworld-WebBridge-Controllers/](https://patchxr.github.io/Patchworld-WebBridge-Controllers/)
 
-Welcome! This template is designed for PatchWorld players who want to build their own custom web interfaces (Web Bridge) to control or display things inside their PatchWorld worlds. You don't need to be an expert developer to use this!
-
-## 🌐 What is this?
-This repository contains a simple, working example of a web page that communicates directly with PatchWorld. 
-
-**This web page is designed to be opened INSIDE PatchWorld** using the `webview_browser` block. Once loaded in your world, it acts as a powerful bridge that lets you script custom game logic using JavaScript!
-
-With the Web Bridge, you unlock limitless creative possibilities:
-
-### 🔌 Physical & Cable Connectivity
-Plug cables directly into the bridge block in VR to interact with your scene:
-- **Physical I/O Cables**: Send and receive strings (`Text Messages in/out`), trigger instant jolt pulses (`Jolt A / B`), or retrieve direct references to connected target blocks.
-
-### 📡 Wireless Bridges
-Communicate across the entire world without running physical cables:
-- **Wireless Jolts**: Bidirectionally broadcast and subscribe to named wireless event channels anywhere in the room.
-- **Reactive Variable System**: Subscribe to live gameplay variables (like `Score` or `Health`). Your UI updates automatically whenever the value changes, and you can get/set/remove variables on target blocks.
-
-### ☁️ Cloud Data & Persistence
-- **Online Server Storage**: Post and fetch persistent key-value data directly on the PatchXR backend servers to save player progress, high scores, or custom world states across sessions.
-
-### 🎨 Scene & Block Manipulation
-- **Set Serialization**: Dynamically apply partial or full `.patch` serialization strings to modify objects and create generative worlds on the fly.
-- **Lifecycle & Transforms**: Spawn new blocks from the library, move and rotate objects in 3D space, lock/unlock items, or hide/remove blocks.
-- **Internal Console Commands**: Run internal engine or AI console commands directly from JavaScript.
-
-For a full list of commands and how the communication works behind the scenes, please refer to the [API Reference](API_Reference.md). *(Note: make sure `API_Reference.md` is copied into this repository!)*
+![Controller Hub UI Preview](https://img.shields.io/badge/Patchworld-VR%20WebBridge-10b981?style=for-the-badge&labelColor=0b0f19)
+![Web MIDI](https://img.shields.io/badge/Web_MIDI-Supported-06b6d4?style=for-the-badge&labelColor=0b0f19)
+![Gamepad API](https://img.shields.io/badge/Gamepad_API-60_FPS-a855f7?style=for-the-badge&labelColor=0b0f19)
 
 ---
 
-## 🚀 How to get your own live Web Bridge (For Free!)
+## 🌟 Overview
 
-The easiest way to get started is to use **GitHub Pages** to host your website automatically.
+The **PatchWorld Universal WebBridge Controller Hub** is a next-generation Single Page Application (SPA) styled as a *Cyberpunk Audio Modular Rack*. It acts as a real-time, bi-directional hardware translator between physical laboratory controllers (USB MIDI keyboards, Gamepads, DIY Microcontrollers, Arduino) and the **Patchworld VR Audio Engine**.
 
-### Step 1: Fork this repository
-1. Sign in to your GitHub account.
-2. Click the **Fork** button at the top right of this page to create a copy of this project on your own account.
-
-### Step 2: Enable GitHub Pages
-1. In your new forked repository, go to **Settings** (the gear icon).
-2. On the left menu, click on **Pages**.
-3. Under **Build and deployment** -> **Source**, select **Deploy from a branch**.
-4. Under **Branch**, select `main` (or `master`) and `/ (root)`, then click **Save**.
-5. Wait a few minutes. GitHub will give you a link at the top of the page (e.g., `https://your-username.github.io/Patchworld-WebBridge-Template/`). 
-6. **This is your live Web Bridge URL!** Put this link into your PatchWorld browser block.
+Whether loaded inside Meta Quest VR via a Patchworld `Browser` block (powered by Vuplex 3D WebView) or tested in a standard Desktop web browser, the Hub polls physical hardware movements and routes them instantly into Patchworld VR Wireless Jolts (`send//`).
 
 ---
 
-## 🤖 How to modify the code (Vibe Coding with AI)
+## ✨ Key Features & Capabilities
 
-You don't even need to download anything to change how your Web Bridge looks and works! You can use an AI assistant like **Bolt.new** to code it for you directly from your browser.
+### 🎹 1. Web MIDI I/O Matrix
+* **Hardware Plug & Play:** Automatically discovers standard USB MIDI keyboards, drum pads, modular synths, and OS-paired Bluetooth MIDI controllers.
+* **Full Protocol Routing:** Converts Note On/Off velocities, Control Change (CC) faders/knobs, and Pitch Bend wheels into customizable wireless network channels.
+* **Bi-directional VR Feedback:** Subscribes to the VR wireless channel `midi_led_1`. When triggered by a virtual VR block, the Hub sends real physical MIDI Out messages to illuminate hardware LEDs on your external controller.
 
-### Using Bolt.new to code with AI
-1. Go to [Bolt.new](https://bolt.new) and log in with your GitHub account.
-2. To allow Bolt to save your changes to GitHub, it needs a secure token. Open GitHub in a new tab.
-3. Click your profile picture (top right) -> **Settings**.
-4. Scroll to the very bottom left and click **Developer settings**.
-5. Click **Personal access tokens** -> **Fine-grained tokens**, then **Generate new token**.
-6. Under **Repository access**, choose **Only select repositories** and select your forked repository.
-7. Scroll down to **Repository permissions**. Find **Contents** and change it from *Read-only* to **Read and write**.
-8. Scroll to the bottom and click **Generate token**.
-9. **Copy the token** and paste it into Bolt when it asks for credentials.
-10. Give Bolt the URL of your repository and just tell the AI what you want (e.g., *"Change the background to dark mode and add a big red button that says 'Jolt'"*). 
-11. Bolt will write the code and push it to your GitHub. Wait a minute or two, refresh your GitHub Pages URL, and enjoy your new interface!
+### 🎮 2. Universal Gamepad & VR Controller Engine
+* **Universal W3C Enumeration:** Dynamically inspects hardware capabilities (`gp.axes` and `gp.buttons`). Adapts automatically whether you connect an **Xbox 360/Series Controller**, **PlayStation DualSense**, **Nintendo Switch Pro**, **Arcade Stick**, or **Meta Quest Touch Pro** VR controllers.
+* **VR Anti-Lag Protection:** 
+  * *Configurable Joystick Deadzone* (default `0.08`) eliminates analog drift.
+  * *Delta Broadcast Threshold* (default `0.01`) prevents network spam when resting fingers on joysticks.
+  * *Engine Throttling Rate Limiter* caps outgoing packets to ~40 jolts/sec per channel to preserve Unity VR frame rates.
+* **Haptic Rumble Feedback:** Subscribes to the VR wireless channel `rumble`. Any trigger fired inside the virtual room instantly drives dual-motor vibration actuators (`playEffect('dual-rumble')`) on physical gamepads.
+
+### 🔌 3. Raw Web HID & Web Serial Inspector
+* **DIY Hardware Integration:** Features manual pairing portals to authorize raw USB human interface devices (HID) and Web Serial COM ports (e.g., Arduino sending telemetry at 9600 baud).
+
+### ⌨️ 4. Virtual Keypad Matrix
+* **No-Hardware VR Fallback:** A dedicated on-screen trigger pad matrix playable via mouse clicks or PC keyboard shortcuts (`Space`, `Enter`, `Q`, `W`, `E`, `R`, `1` to `4`). Perfect for testing VR room logic directly inside the Unity Editor or desktop simulations.
+
+### 📡 5. Live Jolt Packet Inspector & Routing Cache
+* **Real-time Network Console:** Monitors all outgoing (`📤 OUT SEND//`) and incoming (`📥 IN RECV//`) bridge traffic with timestamps and value inspectors.
+* **Persistent Cache:** Custom channel names (e.g., changing `send//gamepad/0/axis/0` to `send//synth_filter_cutoff`) are automatically saved to browser `localStorage` and remembered across sessions.
 
 ---
 
-## 💻 Advanced: Editing Locally
-If you prefer to code the traditional way on your computer:
-1. Install [Git for Windows](https://gitforwindows.org/) or [Git for Mac](https://git-scm.com/download/mac) if you don't have it.
-2. Clone your repository using the terminal: 
-   ```bash
-   git clone https://github.com/YOUR-USERNAME/Patchworld-WebBridge-Template.git
-   ```
-3. Edit `index.html` with your favorite text editor (like VS Code or Notepad++).
-4. Commit and push your changes back to GitHub. Your live website will update automatically!
+## 🚀 Quick Start Guide (How to Use in VR)
+
+1. **Launch Patchworld VR** on your Meta Quest headset or PC standalone build.
+2. Spawn a **`Browser` block** in your patch.
+3. Spawn a **`Web Bride** and connect it to the Browser.
+4. Set the browser URL to the live portal:  
+   `https://patchxr.github.io/Patchworld-WebBridge-Controllers/`  
+   *(Or point to your local development file `file:///.../index.html`).*
+5. **Awaken Browser Hardware:** Click anywhere inside the browser display, then press any button or turn a knob on your physical controller.
+6. **Inspect Live VU Meters:** Select your device tab on the left sidebar. Move joysticks or faders to watch the green/cyan VU bars pulse in real time.
+7. **Assign Channels:** Look at the channel address column (e.g., `send//gamepad/0/axis/1`). You can rename it to anything you want.
+8. **Receive in VR:** Spawn a **`Receive Jolt` block** anywhere in your VR world and type the exact matching string (e.g., `gamepad/0/axis/1`). Connect its output cable to any synthesizer frequency, light intensity, or spatial parameter!
+
+---
+
+## 📐 Layout & Viewport Architecture
+
+Built specifically to conquer VR web viewports (Chromium CEF / Android System WebView):
+* **Strict Viewport Locking (`height: 100%`)**: Binds document flow strictly to the rendered window bounds, preventing vertical layout shifts or clipping when browser zooming.
+* **Pinned Headers & Footers (`flex-shrink: 0`)**: Top status headers, slider controls, and the bottom packet monitoring console remain permanently anchored.
+* **Isolated Scrollable Lists**: When controllers possess extensive control arrays (such as 20+ gamepad buttons), *only the central control list scrolls*, keeping the navigation and diagnostic frames fixed in place.
+
+---
+
+*Developed for the Patchworld VR Community.*
