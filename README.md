@@ -47,7 +47,7 @@ Whether loaded inside Meta Quest VR via a Patchworld `Browser` block (powered by
 
 1. **Launch Patchworld VR** on your Meta Quest headset or PC standalone build.
 2. Spawn a **`Browser` block** in your patch.
-3. Spawn a **`Web Bride** and connect it to the Browser.
+3. Spawn a **`Web Bride`** and connect it to the Browser.
 4. Set the browser URL to the live portal:  
    `https://patchxr.github.io/Patchworld-WebBridge-Controllers/`  
    *(Or point to your local development file `file:///.../index.html`).*
